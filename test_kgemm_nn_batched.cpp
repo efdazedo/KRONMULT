@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cassert>
+#include <chrono>
+#include <unistd.h>
 
 #include "kgemm_nn_batched.hpp"
 
@@ -30,8 +32,8 @@ int main()
         // simple program to test kgemm_nn_batched
         // ----------------------------------------
 
-        int constexpr n = 16;
-        int constexpr  batchCount = 4;
+        int constexpr n = 40;
+        int constexpr  batchCount = 1024;
 
         double *Aarray_[batchCount];
         double *Barray_[batchCount];
@@ -252,6 +254,12 @@ int main()
 
         dim3 grid(batchCount,1,1);
         dim3 block(16,16,1);
+
+        cudaError_t istat_sync_start = cudaDeviceSynchronize();
+        assert( istat_sync_start == cudaSuccess );
+
+        auto time_start = std::chrono::steady_clock::now();
+
         kgemm_nn_batched<double><<< grid, block >>>( mm,nn,kk, 
                           alpha,
                           ddAarray_, dldAarray_,
@@ -259,6 +267,14 @@ int main()
                           beta, 
                           ddCarray_, dldCarray_,
                           batchCount);
+
+        cudaError_t istat_sync_end = cudaDeviceSynchronize();
+        assert( istat_sync_end == cudaSuccess );
+
+        auto time_end = std::chrono::steady_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(time_end- time_start).count();
+
+        std::cout << "elapsed time is " << elapsed_time << " seconds" << "\n";
         }
 
 
