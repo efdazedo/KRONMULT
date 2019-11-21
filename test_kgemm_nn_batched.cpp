@@ -358,17 +358,57 @@ int main()
         std::cout << "n = " << n << " batchCount = " << batchCount << "\n";
         std::cout << "max_abserr = " << max_abserr << "\n";
 
+        // --------
+        // clean up
+        // --------
+
+        for(int ibatch=0; ibatch < batchCount; ibatch++) {
+                delete [] Aarray_[ibatch];
+                delete [] Barray_[ibatch];
+                delete [] Carray_[ibatch];
+        };
+
+        for(int ibatch=0; ibatch < batchCount; ibatch++) {
+                {
+                        cudaError_t istat = cudaFree( hdAarray_[ibatch] );
+                        assert( istat == cudaSuccess );
+                }
+                {
+                        cudaError_t istat = cudaFree( hdBarray_[ibatch] );
+                        assert( istat == cudaSuccess );
+                }
+                {
+                        cudaError_t istat = cudaFree( hdCarray_[ibatch] );
+                        assert( istat == cudaSuccess );
+                }
+             };
+
+        {
+                cudaError_t istat_ddA = cudaFree( ddAarray_ );
+                assert( istat_ddA == cudaSuccess );
+
+                cudaError_t istat_ddB = cudaFree( ddBarray_ );
+                assert( istat_ddB == cudaSuccess );
+
+                cudaError_t istat_ddC = cudaFree( ddCarray_ );
+                assert( istat_ddC == cudaSuccess );
+
+
+                cudaError_t istat_ldA = cudaFree( dldAarray_ );
+                assert( istat_ldA == cudaSuccess );
+
+                cudaError_t istat_ldB = cudaFree( dldBarray_ );
+                assert( istat_ldB == cudaSuccess );
+
+                cudaError_t istat_ldC = cudaFree( dldCarray_ );
+                assert( istat_ldC == cudaSuccess );
+
+
+        }
+
+
+
+
+
         return(0);
 }
-
-
-
-
-
-
-
-
-
-
-
-
