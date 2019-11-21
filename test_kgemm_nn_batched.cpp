@@ -345,6 +345,9 @@ int main()
               for(int i=1; i <= mm; i++) {
                       double cij = 0;
                       for(int k=1; k <= kk; k++) {
+                             // ------------
+                             // Note C = A*B
+                             // ------------
                              cij += A(i,k) * B(k,j);
                       };
                       cij = alpha * cij + beta * cij0;

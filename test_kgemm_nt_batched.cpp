@@ -26,7 +26,11 @@
 #define ABS(x) (((x) >= 0) ? (x) : (-(x)) )
 #endif
 
-int main()
+double test_kgemm_nt_batched( int const mm, 
+                              int const nn, 
+                              int const kk, 
+                              int const batchCount, 
+                              int const idebug = 1)
 {
         // ----------------------------------------
         // simple program to test kgemm_nt_batched
@@ -35,27 +39,22 @@ int main()
         double const alpha = 1.3;
         double const beta = 1.2;
 
-        int constexpr n = 10;
-        int constexpr batchCount = n*n;
-        int constexpr mm = n*n*n*n;
-        int constexpr nn = n;
-        int constexpr kk = n;
 
-        int constexpr nrowA = mm; 
-        int constexpr ncolA = kk; 
+        int const nrowA = mm; 
+        int const ncolA = kk; 
 
-        int constexpr nrowB = nn; 
-        int constexpr ncolB = kk; 
+        int const nrowB = nn; 
+        int const ncolB = kk; 
 
-        int constexpr nrowC = mm; 
-        int constexpr ncolC = nn; 
+        int const nrowC = mm; 
+        int const ncolC = nn; 
 
 
 
-        int constexpr wsize = 32;
-        int constexpr ldA = wsize * (( nrowA + (wsize-1))/wsize );
-        int constexpr ldB = wsize * (( nrowB + (wsize-1))/wsize );
-        int constexpr ldC = wsize * (( nrowC + (wsize-1))/wsize );
+        int const wsize = 32;
+        int const ldA = wsize * (( nrowA + (wsize-1))/wsize );
+        int const ldB = wsize * (( nrowB + (wsize-1))/wsize );
+        int const ldC = wsize * (( nrowC + (wsize-1))/wsize );
 
         double *Aarray_[batchCount];
         double *Barray_[batchCount];
@@ -312,8 +311,11 @@ int main()
         double flops = (2.0*mm*nn)*kk*batchCount;
         double gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
 
-        std::cout << "elapsed time is " << elapsed_time_in_sec << " seconds " 
+        if (idebug >= 2) {
+          std::cout << "elapsed time is " << elapsed_time_in_sec << " seconds " 
                   << gflops_per_sec << " Gflops/s" << "\n";
+          };
+
         }
 
 
@@ -345,7 +347,10 @@ int main()
               for(int i=1; i <= mm; i++) {
                       double cij = 0;
                       for(int k=1; k <= kk; k++) {
-                             cij += A(i,k) * B(k,j);
+                              // ---------------------------
+                              // note   C = A * transpose(B)
+                              // ---------------------------
+                             cij += A(i,k) * B(j,k); 
                       };
                       cij = alpha * cij + beta * cij0;
 
@@ -355,8 +360,9 @@ int main()
               };
         }; 
 
-        std::cout << "n = " << n << " batchCount = " << batchCount << "\n";
-        std::cout << "max_abserr = " << max_abserr << "\n";
+        if (idebug >= 1) {
+          std::cout << "max_abserr = " << max_abserr << "\n";
+        };
 
         // --------
         // clean up
@@ -410,5 +416,55 @@ int main()
 
 
 
+        return(max_abserr);
+}
+
+int main()
+{
+        int const idebug = 1;
+        int const inc = 7;
+        int const kk_max = 40;
+        int const mm_max = 40;
+        int const nn_max = 40;
+        int const batchCount_max = 2*inc + 1;
+        double const tol = 1.0/(1000.0*1000.0);
+
+        int nerrors = 0;
+        for(int batchCount=1; batchCount <= batchCount_max; batchCount += inc) {
+        for(int kk=1; kk <= kk_max; kk += inc) {
+        for(int nn=1; nn <= nn_max; nn += inc) {
+        for(int mm=1; mm <= mm_max; mm += inc) {
+                double const max_abserr = test_kgemm_nt_batched(mm,nn,kk,batchCount,idebug);
+                double const isok = (max_abserr < tol);
+
+                if (!isok) {
+                        nerrors += 1;
+                };
+
+                if ((!isok) || (idebug >= 2)) {
+                        std::cout << " mm = " << mm 
+                                  << " nn = " << nn
+                                  << " kk = " << kk
+                                  << " batchCount = " << batchCount 
+                                  << " max_abserr = " << max_abserr
+                                  << "\n";
+                };
+        };
+        };
+        };
+        };
+
+        if (nerrors == 0) {
+                std::cout << "ALL PASSED" << "\n";
+        }
+        else {
+                std::cout << "There are " << nerrors << " errors " << "\n";
+        };
         return(0);
 }
+
+
+
+
+
+
