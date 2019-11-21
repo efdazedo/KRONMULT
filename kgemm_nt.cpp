@@ -1,8 +1,8 @@
 #include "kroncommon.hpp"
-#include "kgemm_nn.hpp"
+#include "kgemm_nt.hpp"
 
 DEVICE_FUNCTION
-void kgemm_nn( int const mm, int const nn, int const kk,
+void kgemm_nt( int const mm, int const nn, int const kk,
           double const alpha,
           double const * const A_, int const ldA,
           double const * const B_, int const ldB,
@@ -11,7 +11,7 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 {
 
 
-  kgemm_nn<double>( mm,nn,kk,
+  kgemm_nt<double>( mm,nn,kk,
                    alpha,
                    A_, ldA,
                    B_, ldB,

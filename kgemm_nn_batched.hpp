@@ -1,16 +1,12 @@
 #ifndef KGEMM_NN_BATCHED_H
 #define KGEMM_NN_BATCHED_H 1
 
+#include "kroncommon.hpp"
 #include "kgemm_nn.hpp"
 
-#ifdef USE_GPU
-#define GLOBAL __global__
-#else
-#define GLOBAL
-#endif
 
 template<typename T>
-GLOBAL
+GLOBAL_FUNCTION
 void kgemm_nn_batched( int const mm, int const nn, int const kk, 
                        T const alpha, 
                        T* const Aarray_[], 
@@ -56,7 +52,6 @@ void kgemm_nn_batched( int const mm, int const nn, int const kk,
 }
 
 
-#undef GLOBAL
 #undef Aarray
 #undef Barray
 #undef Carray

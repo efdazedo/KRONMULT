@@ -1,6 +1,7 @@
 #ifndef KRONMULT1_HPP
-
 #define  KRONMULT1_HPP 1
+
+#include "kroncommon.hpp"
 
 #include "kgemm_nn.hpp"
 
@@ -10,7 +11,7 @@
 //  which is just matrix multiply  Y = A1 * X
 //  -------------------------------------------
 template<typename T>
-DEVICE
+DEVICE_FUNCTION
 void kronmult1( int const n, 
                 int const nvec,
                 T   const A1_[],

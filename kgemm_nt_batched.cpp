@@ -1,10 +1,16 @@
-#include "kroncommon.hpp"
-#include "kgemm_nn_batched.hpp"
+#include "kgemm_nt_batched.hpp"
 
 
+#ifdef USE_GPU
+#include <cuda.h>
+#include <cuda_runtime.h>
 
+#define GLOBAL  __global__ 
+#else
+#define GLOBAL
+#endif
 
-void kgemm_nn_batched( int const mm, int const nn, int const kk, 
+void kgemm_nt_batched( int const mm, int const nn, int const kk, 
                        double const alpha, 
                        double* const Aarray_[], 
                        int const ldAarray_[], 
@@ -19,7 +25,7 @@ void kgemm_nn_batched( int const mm, int const nn, int const kk,
         dim3 grid(batchCount,1,1);
         dim3 block(16,16,1);
 
-        kgemm_nn_batched<double><<< grid, block>>>( mm,nn,kk,
+        kgemm_nt_batched<double><<< grid, block>>>( mm,nn,kk,
                           alpha,
                           Aarray_, ldAarray_,
                           Barray_, ldBarray_,
@@ -27,7 +33,7 @@ void kgemm_nn_batched( int const mm, int const nn, int const kk,
                           Carray_, ldCarray_,
                           batchCount );
 #else
-        kgemm_nn_batched<double>( mm,nn,kk,
+        kgemm_nt_batched<double>( mm,nn,kk,
                           alpha,
                           Aarray_, ldAarray_,
                           Barray_, ldBarray_,

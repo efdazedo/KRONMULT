@@ -11,7 +11,7 @@
 #endif
 
 template<typename T>
-GLOBAL
+GLOBAL_FUNCTION
 void kgemm_nt_batched( int const mm, int const nn, int const kk, 
                        T const alpha, 
                        T* const Aarray_[], 

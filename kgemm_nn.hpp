@@ -1,37 +1,15 @@
 #ifndef KGEMM_NN_HPP
 #define KGEMM_NN_HPP 1
 
-#include <cassert>
+#include "kroncommon.hpp"
 
-
-#ifndef MAX
-#define MAX(x,y)  ( ((x) > (y)) ? (x) : (y) )
-#endif
-
-#ifndef MIN
-#define MIN(x,y)  (  ((x) < (y)) ? (x) : (y) )
-#endif
-
-#ifndef indx2f
-#define indx2f(i,j,ld) (((i)-1) + ((j)-1)*(ld))
-#endif
-
-#ifdef USE_GPU
-#define SYNCTHREADS __syncthreads()
-#define SHARED_MEMORY __shared__
-#define DEVICE __device__
-#else
-#define SYNCTHREADS 
-#define SHARED_MEMORY 
-#define DEVICE 
-#endif
 
 //  -----------------------
 //  NotransA and NotransB case
 //  C = alpha*A*B + beta *C
 //  -----------------------
 template<typename T>
-DEVICE
+DEVICE_FUNCTION
 void kgemm_nn( int const mm, int const nn, int const kk, 
                T const alpha,
                T const * const A_,  int const ldA,

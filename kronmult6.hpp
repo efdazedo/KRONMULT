@@ -1,6 +1,7 @@
 #ifndef KRONMULT6_HPP
-
 #define  KRONMULT6_HPP 1
+
+#include "kroncommon.hpp"
 
 #include "kgemm_nt.hpp"
 #include "kronmult5.hpp"
@@ -12,7 +13,7 @@
 //  Y = kron(A2,..,A6) * W
 //  -------------------------------------------
 template<typename T>
-DEVICE
+DEVICE_FUNCTION
 void kronmult6( int const n, 
                 int const nvec,
                 T   const A1_[],

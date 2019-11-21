@@ -1,6 +1,7 @@
 #ifndef KRONMULT6_BATCHED_HPP
 #define KRONMULT6_BATCHED_HPP 1
 
+#include "kroncommon.hpp"
 
 #include "kronmult6.hpp"
 
@@ -11,7 +12,7 @@
 // Note  result in Y but X and W may be modified as temporary work space
 // --------------------------------------------------------------------
 template<typename T>
-GLOBAL
+GLOBAL_FUNCTION
 void kronmult6_batched(
                        int const n,
                        T const Aarray_[],
@@ -41,10 +42,6 @@ void kronmult6_batched(
         int const n4 = n2*n2;
         int const n6 = n2 * n4;
 
-#ifndef indx4f
-#define indx4f(i1,i2,i3,i4, n1,n2,n3) \
-        (((i1)-1) + ((i2)-1)*(n1) + ((i3)-1)*((n1)*(n2)) + ((i4)-1)*((n1)*(n2)*(n3)))
-#endif
 
 #define X(i,j) X_[ indx2f(i,j,n6) ]
 #define Y(i,j) Y_[ indx2f(i,j,n6) ]
