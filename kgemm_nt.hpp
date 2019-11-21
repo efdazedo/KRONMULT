@@ -1,5 +1,5 @@
-#ifndef kgemm_nt_HPP
-#define kgemm_nt_HPP 1
+#ifndef KGEMM_NT_HPP
+#define KGEMM_NT_HPP 1
 
 #include <cassert>
 
@@ -109,8 +109,9 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
                     SYNCTHREADS;
 
-                    for(int k=ix_start; k <= ksize; k += ix_size) {
-                    for(int j=iy_start; j <= jsize; j += iy_size) {
+
+                    for(int k=iy_start; k <= ksize; k += iy_size) {
+                    for(int j=ix_start; j <= jsize; j += ix_size) {
                        Btmp(j,k) = B( (jstart-1) + j, (kstart-1) + k);
                        };
                        };
