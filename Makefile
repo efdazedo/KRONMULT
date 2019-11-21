@@ -10,7 +10,5 @@ test_kgemm_nt_batched: test_kgemm_nt_batched.cpp kgemm_nt_batched.hpp kgemm_nt.h
 	$(NVCC) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp -lcuda
 
 clean:
-	touch test_kgemm_nn_batched
-	touch test_kgemm_nt_batched
-	rm test_kgemm_nn_batched
-	rm test_kgemm_nt_batched
+	touch test_kgemm_nn_batched test_kgemm_nt_batched kgemm_nt_batched.o
+	rm test_kgemm_nn_batched test_kgemm_nt_batched *.o
