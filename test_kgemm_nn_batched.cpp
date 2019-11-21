@@ -32,8 +32,30 @@ int main()
         // simple program to test kgemm_nn_batched
         // ----------------------------------------
 
-        int constexpr n = 40;
-        int constexpr  batchCount = 1024;
+        double const alpha = 1.3;
+        double const beta = 1.2;
+
+        int constexpr n = 10;
+        int constexpr batchCount = n*n;
+        int constexpr mm = n*n*n*n;
+        int constexpr nn = n;
+        int constexpr kk = n;
+
+        int constexpr nrowA = mm; 
+        int constexpr ncolA = kk; 
+
+        int constexpr nrowB = kk; 
+        int constexpr ncolB = nn; 
+
+        int constexpr nrowC = mm; 
+        int constexpr ncolC = nn; 
+
+
+
+        int constexpr wsize = 32;
+        int constexpr ldA = wsize * (( nrowA + (wsize-1))/wsize );
+        int constexpr ldB = wsize * (( nrowB + (wsize-1))/wsize );
+        int constexpr ldC = wsize * (( nrowC + (wsize-1))/wsize );
 
         double *Aarray_[batchCount];
         double *Barray_[batchCount];
@@ -68,13 +90,13 @@ int main()
         // initialize array
         // ----------------
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-                double * const A_ = new double[n*n];
-                double * const B_ = new double[n*n];
-                double * const C_ = new double[n*n];
+                double * const A_ = new double[ldA*ncolA];
+                double * const B_ = new double[ldB*ncolB];
+                double * const C_ = new double[ldC*ncolC];
 
-                assert( A_ != 0);
-                assert( B_ != 0);
-                assert( C_ != 0);
+                assert( A_ != nullptr);
+                assert( B_ != nullptr);
+                assert( C_ != nullptr);
 
                 Aarray_[ibatch] = A_;
                 Barray_[ibatch] = B_;
@@ -83,9 +105,6 @@ int main()
         };
 
 
-        int const ldA = n;
-        int const ldB = n;
-        int const ldC = n;
 #define A(i,j)  A_[ indx2f(i,j,ldA) ]
 #define B(i,j)  B_[ indx2f(i,j,ldB) ]
 #define C(i,j)  C_[ indx2f(i,j,ldC) ]
@@ -94,11 +113,22 @@ int main()
              double *A_ = Aarray_[ibatch];
              double *B_ = Barray_[ibatch];
              double *C_ = Carray_[ibatch];
-             for(int j=1; j <= n; j++) {
-             for(int i=1; i <= n; i++) {
-                A(i,j) = 1.0 + i + j;
-                B(i,j) = 1.0/(1.0 + i + j);
-                C(i,j) = 0;
+             for(int j=1; j <= ncolA; j++) {
+             for(int i=1; i <= nrowA; i++) {
+                A(i,j) = 1.0 + i + j + ibatch;
+             };
+             };
+
+
+             for(int j=1; j <= ncolB; j++) {
+             for(int i=1; i <= nrowB; i++) {
+                B(i,j) = 1.0 /(1.0 + i + j + ibatch);
+             };
+             };
+
+             for(int j=1; j <= ncolC; j++) {
+             for(int i=1; i <= nrowC; i++) {
+                C(i,j) = 1;
              };
              };
         };
@@ -108,18 +138,24 @@ int main()
         // --------------------------
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
 
-                const size_t nbytes = sizeof(double)*n*n;
+                size_t const nbytes_A = sizeof(double)*ldA*ncolA;
                 double *dA = nullptr;
-                cudaError_t istat_dA = cudaMalloc( &dA, nbytes );
+                cudaError_t istat_dA = cudaMalloc( &dA, nbytes_A );
                 assert( istat_dA == cudaSuccess );
 
+                size_t const nbytes_B = sizeof(double)*ldB*ncolB;
                 double *dB = nullptr;
-                cudaError_t istat_dB = cudaMalloc( &dB, nbytes );
+                cudaError_t istat_dB = cudaMalloc( &dB, nbytes_B );
                 assert( istat_dB == cudaSuccess );
 
+                size_t const nbytes_C = sizeof(double)*ldC*ncolC;
                 double *dC = nullptr;
-                cudaError_t istat_dC = cudaMalloc( &dC, nbytes );
+                cudaError_t istat_dC = cudaMalloc( &dC, nbytes_C );
                 assert( istat_dC == cudaSuccess );
+
+                assert( dA != nullptr );
+                assert( dB != nullptr );
+                assert( dC != nullptr );
 
                 hdAarray_[ibatch] = dA;
                 hdBarray_[ibatch] = dB;
@@ -132,7 +168,7 @@ int main()
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
                 {
-                size_t nbytes = sizeof(double)*n*n;
+                size_t nbytes = sizeof(double)*ldA*ncolA;
                 void * const dest = hdAarray_[ibatch];
                 void const * const src =  Aarray_[ibatch];
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -141,7 +177,7 @@ int main()
                 };
 
                 {
-                size_t nbytes = sizeof(double)*n*n;
+                size_t nbytes = sizeof(double)*ldB*ncolB;
                 void * const dest = hdBarray_[ibatch];
                 void const * const src =  Barray_[ibatch];
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -150,7 +186,7 @@ int main()
                 };
 
                 {
-                size_t nbytes = sizeof(double)*n*n;
+                size_t nbytes = sizeof(double)*ldC*ncolC;
                 void * const dest = hdCarray_[ibatch];
                 void const * const src =  Carray_[ibatch];
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -209,12 +245,15 @@ int main()
          size_t nbytes = sizeof(int) * batchCount;
          cudaError_t istat_ldA = cudaMalloc( &dldAarray_, nbytes );
          assert( istat_ldA == cudaSuccess );
+         assert( dldAarray_ != nullptr);
 
          cudaError_t istat_ldB = cudaMalloc( &dldBarray_, nbytes );
          assert( istat_ldB == cudaSuccess );
+         assert( dldBarray_ != nullptr);
 
          cudaError_t istat_ldC = cudaMalloc( &dldCarray_, nbytes );
          assert( istat_ldC == cudaSuccess );
+         assert( dldCarray_ != nullptr);
         }
 
         // -------------------------------------------
@@ -245,12 +284,7 @@ int main()
                 cudaError_t istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
         }
 
-        int const mm = n;
-        int const nn = n;
-        int const kk = n;
         {
-        double const alpha = 1.0;
-        double const beta = 0.0;
 
         dim3 grid(batchCount,1,1);
         dim3 block(16,16,1);
@@ -272,9 +306,14 @@ int main()
         assert( istat_sync_end == cudaSuccess );
 
         auto time_end = std::chrono::steady_clock::now();
-        auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(time_end- time_start).count();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_end- time_start).count();
 
-        std::cout << "elapsed time is " << elapsed_time << " seconds" << "\n";
+        double elapsed_time_in_sec = elapsed_time * 0.001;
+        double flops = (2.0*mm*nn)*kk*batchCount;
+        double gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
+
+        std::cout << "elapsed time is " << elapsed_time_in_sec << " seconds " 
+                  << gflops_per_sec << " Gflops/s" << "\n";
         }
 
 
@@ -282,13 +321,17 @@ int main()
         // check results
         // -------------
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-                size_t const nbytes = sizeof(double) * n * n;
+                size_t const nbytes = sizeof(double) * ldC*ncolC;
                 void * const dest = Carray_[ibatch];
                 void * const src = hdCarray_[ibatch];
                 cudaMemcpyKind kinddir = cudaMemcpyDeviceToHost;
                 cudaError_t istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
         };
 
+        {
+        cudaError_t istat_sync = cudaDeviceSynchronize();
+        assert( istat_sync == cudaSuccess );
+        }
 
         double max_abserr = 0;
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
@@ -296,12 +339,16 @@ int main()
               double const * const B_ = Barray_[ibatch];
               double const * const C_ = Carray_[ibatch];
 
+              double const cij0 = 1;
+
               for(int j=1; j <= nn; j++) {
               for(int i=1; i <= mm; i++) {
                       double cij = 0;
                       for(int k=1; k <= kk; k++) {
                              cij += A(i,k) * B(k,j);
                       };
+                      cij = alpha * cij + beta * cij0;
+
                       double const abserr = ABS( cij  - C(i,j) );
                       max_abserr = MAX( max_abserr, abserr );
               };

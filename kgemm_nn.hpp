@@ -66,8 +66,8 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         SHARED_MEMORY T Ctmp_[nb*nb];
 
 #define A(ia,ja)  A_[ indx2f(ia,ja,ldA) ]
-#define B(ib,jb)  B_[ indx2f(ib,jb,ldC) ]
-#define C(ic,jc)  C_[ indx2f(ic,jc,ldB) ]
+#define B(ib,jb)  B_[ indx2f(ib,jb,ldB) ]
+#define C(ic,jc)  C_[ indx2f(ic,jc,ldC) ]
 
 #define Atmp(i,j)  Atmp_[ indx2f(i,j,nb) ]
 #define Btmp(i,j)  Btmp_[ indx2f(i,j,nb) ]
@@ -85,7 +85,7 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                 SYNCTHREADS;
 
                 for(int j=iy_start; j <= jsize; j += iy_size) {
-                for(int i=ix_start; i <= jsize; i += ix_size) {
+                for(int i=ix_start; i <= isize; i += ix_size) {
                   Ctmp(i,j)  = 0;
                 };
                 };
@@ -101,7 +101,7 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                     // load Btmp(1:ksize,1:jsize) <- B( kstart:kend, jstart:jend)
                     // ----------------------------------------------------------
         
-                    for(int k=iy_start; k <= jsize; k += iy_size) {
+                    for(int k=iy_start; k <= ksize; k += iy_size) {
                     for(int i=ix_start; i <= isize; i += ix_size) {
                        Atmp(i,k) = A( (istart-1) + i, (kstart-1) + k);
                        };
@@ -129,6 +129,8 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                             };
                     };
                     };
+
+                    SYNCTHREADS;
 
                   }; // end for kstart
 
