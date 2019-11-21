@@ -38,19 +38,55 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         assert( iy_size >= 1 );
 
         int constexpr nb = 16;
+        int constexpr total_cache = 3*nb*nb;
+        SHARED_MEMORY T cache_memory[ total_cache ];
 
-        SHARED_MEMORY T Atmp_[nb*nb];
-        SHARED_MEMORY T Btmp_[nb*nb];
-        SHARED_MEMORY T Ctmp_[nb*nb];
+        int nb_m = MIN(mm, nb);
+        int nb_n = MIN(nn, nb);
+        int nb_k = MIN(kk, nb);
+
+        //  ------------------------------------
+        //  commonly  mm is large, but kk, nn are small
+        //
+        //  consider increasing nb_m for more effective
+        //  use of shared cache
+        //
+        //  nb_m * nb_k is storage for Atmp
+        //  nb_n * nb_k is storage for Btmp
+        //  nb_m * nb_n is storage for Ctmp
+        //  cache_memory = nb_m*nb_n + nb_n*nb_k + nb_m*nb_k
+        //  ------------------------------------
+        nb_m = (total_cache - nb_n*nb_k)/( nb_n + nb_k);
+        // -------------------------
+        // make nb_m a multiple of nb
+        // -------------------------
+        nb_m = nb * MAX(1, nb_m/nb);
+
+        int ifree = 0;
+        int const ip_Btmp = ifree; ifree += nb_n * nb_k;
+        int const ip_Ctmp = ifree; ifree += nb_m * nb_n;
+        int const ip_Atmp = ifree; ifree += nb_m * nb_k;
 
 #define A(ia,ja)  A_[ indx2f(ia,ja,ldA) ]
 #define B(ib,jb)  B_[ indx2f(ib,jb,ldB) ]
 #define C(ic,jc)  C_[ indx2f(ic,jc,ldC) ]
 
-#define Atmp(i,j)  Atmp_[ indx2f(i,j,nb) ]
-#define Btmp(i,j)  Btmp_[ indx2f(i,j,nb) ]
-#define Ctmp(i,j)  Ctmp_[ indx2f(i,j,nb) ]
+#define Atmp(i,j)  cache_memory[ ip_Atmp + indx2f(i,j,nb_m) ]
+#define Ctmp(i,j)  cache_memory[ ip_Ctmp + indx2f(i,j,nb_m) ]
+#define Btmp(i,j)  cache_memory[ ip_Btmp + indx2f(i,j,nb_n) ]
 
+        bool const is_Btmp_fit = (kk <= nb_k) && (nn <= nb_n);
+        bool const need_load_Btmp = !is_Btmp_fit;
+        if (is_Btmp_fit) {
+                // ------------------------------------------
+                // load B only once into Btmp in shared cache 
+                // ------------------------------------------
+                for(int k=iy_start; k <= kk; k += iy_size) {
+                for(int j=ix_start; j <= nn; j += ix_size) {
+                         Btmp(j,k) = B(j, k);
+                       };
+                       };
+        };
 
         for(int jstart=1; jstart <= nn; jstart += nb) {
             int const jend = MIN(nn, jstart + nb-1);
@@ -76,7 +112,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
                     // ----------------------------------------------------------
                     // load Atmp(1:isize,1:ksize) <- A( istart:iend, kstart:kend)
-                    // load Btmp(1:ksize,1:jsize) <- B( kstart:kend, jstart:jend)
+                    // load Btmp(1:jsize,1:ksize) <- B( jstart:jend, kstart:kend)
                     // ----------------------------------------------------------
         
                     for(int k=iy_start; k <= ksize; k += iy_size) {
@@ -88,11 +124,13 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                     SYNCTHREADS;
 
 
-                    for(int k=iy_start; k <= ksize; k += iy_size) {
-                    for(int j=ix_start; j <= jsize; j += ix_size) {
-                       Btmp(j,k) = B( (jstart-1) + j, (kstart-1) + k);
+                    if (need_load_Btmp) {
+                      for(int k=iy_start; k <= ksize; k += iy_size) {
+                      for(int j=ix_start; j <= jsize; j += ix_size) {
+                         Btmp(j,k) = B( (jstart-1) + j, (kstart-1) + k);
                        };
                        };
+                    };
 
                     SYNCTHREADS;
 

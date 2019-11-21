@@ -77,9 +77,9 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 #define Btmp(i,j)  cache_memory[ ip_Btmp + indx2f(i,j,nb_k) ]
 #define Ctmp(i,j)  cache_memory[ ip_Ctmp + indx2f(i,j,nb_m) ]
 
-    bool const Atmp_fit = (mm <= nb_m) && (kk <= nb_k);
-    bool const need_load_Atmp = !Atmp_fit;
-    if (Atmp_fit) {
+    bool const is_Atmp_fit = (mm <= nb_m) && (kk <= nb_k);
+    bool const need_load_Atmp = !is_Atmp_fit;
+    if (is_Atmp_fit) {
             //  --------------------------
             //  just load A into Atmp shared memory cache once
             //  --------------------------
