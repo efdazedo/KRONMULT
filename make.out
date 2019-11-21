@@ -1,1 +1,0 @@
-nvcc -x cu  -DUSE_GPU  -g -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp -lcuda
