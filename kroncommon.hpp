@@ -30,6 +30,13 @@
 #define indx4f(i1,i2,i3,i4,n1,n2,n3) (indx3f(i1,i2,i3,n1,n2) + ((i4)-1)*((n1)*(n2)*(n3)) )
 #endif
 
+#ifndef indx5f
+#define indx5f(i1,i2,i3,i4,i5,n1,n2,n3,n4) (indx4f(i1,i2,i3,i4,n1,n2,n3) + ((i5)-1)*((n1)*(n2)*(n3)*(n4)) )
+#endif
+
+#ifndef indx6f
+#define indx6f(i1,i2,i3,i4,i5,i6,   n1,n2,n3,n4,n5) (indx5f(i1,i2,i3,i4,i5,n1,n2,n3,n4) + ((i6)-1)*((n1)*(n2)*(n3)*(n4)*(n5)) )
+#endif
 
 #ifdef USE_GPU
 #include <cuda.h>

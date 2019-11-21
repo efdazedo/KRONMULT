@@ -26,7 +26,8 @@
 #define ABS(x) (((x) >= 0) ? (x) : (-(x)) )
 #endif
 
-double test_kgemm_nt_batched( int const mm, 
+template<typename T>
+T test_kgemm_nt_batched( int const mm, 
                               int const nn, 
                               int const kk, 
                               int const batchCount, 
@@ -36,8 +37,8 @@ double test_kgemm_nt_batched( int const mm,
         // simple program to test kgemm_nt_batched
         // ----------------------------------------
 
-        double const alpha = 1.3;
-        double const beta = 1.2;
+        T const alpha = 1.3;
+        T const beta = 1.2;
 
 
         int const nrowA = mm; 
@@ -64,23 +65,23 @@ double test_kgemm_nt_batched( int const mm,
 
 
 
-        double *Aarray_[batchCount];
-        double *Barray_[batchCount];
-        double *Carray_[batchCount];
+        T *Aarray_[batchCount];
+        T *Barray_[batchCount];
+        T *Carray_[batchCount];
 
         // -------------
         // device arrays
         // -------------
-        double *hdAarray_[batchCount];
-        double *hdBarray_[batchCount];
-        double *hdCarray_[batchCount];
+        T *hdAarray_[batchCount];
+        T *hdBarray_[batchCount];
+        T *hdCarray_[batchCount];
 
-        double **ddAarray_ = nullptr;
-        double **ddBarray_ = nullptr;
-        double **ddCarray_ = nullptr;
+        T **ddAarray_ = nullptr;
+        T **ddBarray_ = nullptr;
+        T **ddCarray_ = nullptr;
 
         {
-                size_t nbytes = sizeof(double *) * batchCount;
+                size_t nbytes = sizeof(T *) * batchCount;
                 cudaError_t istat_ddAarray = cudaMalloc(  &ddAarray_, nbytes );
                 assert(istat_ddAarray == cudaSuccess );
 
@@ -97,9 +98,9 @@ double test_kgemm_nt_batched( int const mm,
         // initialize array
         // ----------------
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-                double * const A_ = new double[ldA*ncolA];
-                double * const B_ = new double[ldB*ncolB];
-                double * const C_ = new double[ldC*ncolC];
+                T * const A_ = new T[ldA*ncolA];
+                T * const B_ = new T[ldB*ncolB];
+                T * const C_ = new T[ldC*ncolC];
 
                 assert( A_ != nullptr);
                 assert( B_ != nullptr);
@@ -117,9 +118,9 @@ double test_kgemm_nt_batched( int const mm,
 #define C(i,j)  C_[ indx2f(i,j,ldC) ]
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-             double *A_ = Aarray_[ibatch];
-             double *B_ = Barray_[ibatch];
-             double *C_ = Carray_[ibatch];
+             T *A_ = Aarray_[ibatch];
+             T *B_ = Barray_[ibatch];
+             T *C_ = Carray_[ibatch];
              for(int j=1; j <= ncolA; j++) {
              for(int i=1; i <= nrowA; i++) {
                 A(i,j) = 1.0 + i + j*nrowA + ibatch;
@@ -145,18 +146,18 @@ double test_kgemm_nt_batched( int const mm,
         // --------------------------
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
 
-                size_t const nbytes_A = sizeof(double)*ldA*ncolA;
-                double *dA = nullptr;
+                size_t const nbytes_A = sizeof(T)*ldA*ncolA;
+                T *dA = nullptr;
                 cudaError_t istat_dA = cudaMalloc( &dA, nbytes_A );
                 assert( istat_dA == cudaSuccess );
 
-                size_t const nbytes_B = sizeof(double)*ldB*ncolB;
-                double *dB = nullptr;
+                size_t const nbytes_B = sizeof(T)*ldB*ncolB;
+                T *dB = nullptr;
                 cudaError_t istat_dB = cudaMalloc( &dB, nbytes_B );
                 assert( istat_dB == cudaSuccess );
 
-                size_t const nbytes_C = sizeof(double)*ldC*ncolC;
-                double *dC = nullptr;
+                size_t const nbytes_C = sizeof(T)*ldC*ncolC;
+                T *dC = nullptr;
                 cudaError_t istat_dC = cudaMalloc( &dC, nbytes_C );
                 assert( istat_dC == cudaSuccess );
 
@@ -175,7 +176,7 @@ double test_kgemm_nt_batched( int const mm,
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
                 {
-                size_t nbytes = sizeof(double)*ldA*ncolA;
+                size_t nbytes = sizeof(T)*ldA*ncolA;
                 void * const dest = hdAarray_[ibatch];
                 void const * const src =  Aarray_[ibatch];
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -184,7 +185,7 @@ double test_kgemm_nt_batched( int const mm,
                 };
 
                 {
-                size_t nbytes = sizeof(double)*ldB*ncolB;
+                size_t nbytes = sizeof(T)*ldB*ncolB;
                 void * const dest = hdBarray_[ibatch];
                 void const * const src =  Barray_[ibatch];
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -193,7 +194,7 @@ double test_kgemm_nt_batched( int const mm,
                 };
 
                 {
-                size_t nbytes = sizeof(double)*ldC*ncolC;
+                size_t nbytes = sizeof(T)*ldC*ncolC;
                 void * const dest = hdCarray_[ibatch];
                 void const * const src =  Carray_[ibatch];
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -206,7 +207,7 @@ double test_kgemm_nt_batched( int const mm,
         // copy pointers to device
         // -----------------------
         {
-                size_t nbytes = sizeof( double *) * batchCount;
+                size_t nbytes = sizeof( T *) * batchCount;
                 void *dest = ddAarray_;
                 void *src = &(hdAarray_[0]);
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -214,7 +215,7 @@ double test_kgemm_nt_batched( int const mm,
                 assert( istat_cpy == cudaSuccess );
         }
         {
-                size_t nbytes = sizeof( double *) * batchCount;
+                size_t nbytes = sizeof( T *) * batchCount;
                 void *dest = ddBarray_;
                 void *src = &(hdBarray_[0]);
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -223,7 +224,7 @@ double test_kgemm_nt_batched( int const mm,
         }
 
         {
-                size_t nbytes = sizeof( double *) * batchCount;
+                size_t nbytes = sizeof( T *) * batchCount;
                 void *dest = ddCarray_;
                 void *src = &(hdCarray_[0]);
                 cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
@@ -301,7 +302,7 @@ double test_kgemm_nt_batched( int const mm,
 
         auto time_start = std::chrono::steady_clock::now();
 
-        kgemm_nt_batched<double><<< grid, block >>>( mm,nn,kk, 
+        kgemm_nt_batched<T><<< grid, block >>>( mm,nn,kk, 
                           alpha,
                           ddAarray_, dldAarray_,
                           ddBarray_, dldBarray_,
@@ -315,9 +316,9 @@ double test_kgemm_nt_batched( int const mm,
         auto time_end = std::chrono::steady_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_end- time_start).count();
 
-        double elapsed_time_in_sec = elapsed_time * 0.001;
-        double flops = (2.0*mm*nn)*kk*batchCount;
-        double gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
+        T elapsed_time_in_sec = elapsed_time * 0.001;
+        T flops = (2.0*mm*nn)*kk*batchCount;
+        T gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
 
         if (idebug >= 2) {
           std::cout << "elapsed time is " << elapsed_time_in_sec << " seconds " 
@@ -331,7 +332,7 @@ double test_kgemm_nt_batched( int const mm,
         // check results
         // -------------
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-                size_t const nbytes = sizeof(double) * ldC*ncolC;
+                size_t const nbytes = sizeof(T) * ldC*ncolC;
                 void * const dest = Carray_[ibatch];
                 void * const src = hdCarray_[ibatch];
                 cudaMemcpyKind kinddir = cudaMemcpyDeviceToHost;
@@ -343,17 +344,17 @@ double test_kgemm_nt_batched( int const mm,
         assert( istat_sync == cudaSuccess );
         }
 
-        double max_abserr = 0;
+        T max_abserr = 0;
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-              double const * const A_ = Aarray_[ibatch];
-              double const * const B_ = Barray_[ibatch];
-              double const * const C_ = Carray_[ibatch];
+              T const * const A_ = Aarray_[ibatch];
+              T const * const B_ = Barray_[ibatch];
+              T const * const C_ = Carray_[ibatch];
 
-              double const cij0 = 1;
+              T const cij0 = 1;
 
               for(int j=1; j <= nn; j++) {
               for(int i=1; i <= mm; i++) {
-                      double cij = 0;
+                      T cij = 0;
                       for(int k=1; k <= kk; k++) {
                               // ---------------------------
                               // note   C = A * transpose(B)
@@ -362,7 +363,7 @@ double test_kgemm_nt_batched( int const mm,
                       };
                       cij = alpha * cij + beta * cij0;
 
-                      double const abserr = ABS( cij  - C(i,j) );
+                      T const abserr = ABS( cij  - C(i,j) );
                       max_abserr = MAX( max_abserr, abserr );
               };
               };
@@ -442,7 +443,7 @@ int main()
         for(int kk=1; kk <= kk_max; kk += inc) {
         for(int nn=1; nn <= nn_max; nn += inc) {
         for(int mm=1; mm <= mm_max; mm += inc) {
-                double const max_abserr = test_kgemm_nt_batched(mm,nn,kk,batchCount,idebug);
+                double const max_abserr = test_kgemm_nt_batched<double>(mm,nn,kk,batchCount,idebug);
                 double const isok = (max_abserr < tol);
 
                 if (!isok) {
