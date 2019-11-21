@@ -50,11 +50,19 @@ double test_kgemm_nt_batched( int const mm,
         int const ncolC = nn; 
 
 
+        int ldA = nrowA;
+        int ldB = nrowB;
+        int ldC = nrowC;
 
-        int const wsize = 32;
-        int const ldA = wsize * (( nrowA + (wsize-1))/wsize );
-        int const ldB = wsize * (( nrowB + (wsize-1))/wsize );
-        int const ldC = wsize * (( nrowC + (wsize-1))/wsize );
+        bool const need_align = false;
+        if (need_align) {
+           int const wsize = 32;
+           ldA = wsize * (( nrowA + (wsize-1))/wsize );
+           ldB = wsize * (( nrowB + (wsize-1))/wsize );
+           ldC = wsize * (( nrowC + (wsize-1))/wsize );
+        };
+
+
 
         double *Aarray_[batchCount];
         double *Barray_[batchCount];
@@ -114,14 +122,14 @@ double test_kgemm_nt_batched( int const mm,
              double *C_ = Carray_[ibatch];
              for(int j=1; j <= ncolA; j++) {
              for(int i=1; i <= nrowA; i++) {
-                A(i,j) = 1.0 + i + j + ibatch;
+                A(i,j) = 1.0 + i + j*nrowA + ibatch;
              };
              };
 
 
              for(int j=1; j <= ncolB; j++) {
              for(int i=1; i <= nrowB; i++) {
-                B(i,j) = 1.0 /(1.0 + i + j + ibatch);
+                B(i,j) = 1.0 /(1.0 + i + j*nrowB + ibatch);
              };
              };
 
@@ -421,7 +429,7 @@ double test_kgemm_nt_batched( int const mm,
 
 int main()
 {
-        int const idebug = 1;
+        int const idebug = 0;
         int const inc = 7;
         int const kk_max = 40;
         int const mm_max = 40;
