@@ -40,7 +40,7 @@ void myfree( void * devPtr ) {
      
 
 template<typename T>
-T test_kronmult6_batched( int const n, int const batchCount )
+T test_kronmult6_batched( int const n, int const batchCount, int const idebug = 0  )
 {
         int const n2 = n*n;
         int const n3 = n*n2;
@@ -55,6 +55,7 @@ T test_kronmult6_batched( int const n, int const batchCount )
         // Aarray is (n,n,6,batchCount)
         // Xarray is (n6 by batchCount)
         // Yarray is (n6 by batchCount)
+        // Zarray is (n6 by batchCount)
         // Warray is (n6 by batchCount)
         // ----------------------------
 
@@ -62,23 +63,39 @@ T test_kronmult6_batched( int const n, int const batchCount )
 
         T *Aarray_ = (T *) myalloc( sizeof(T)*n*n*6*batchCount);
         T *Xarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
+        T *Zarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
         T *Yarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
         T *Warray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
 
+        assert( Aarray_ != nullptr );
+        assert( Xarray_ != nullptr );
+        assert( Yarray_ != nullptr );
+        assert( Zarray_ != nullptr );
+        assert( Warray_ != nullptr );
 
 #define Aarray(i,j,k,ibatch) Aarray_[ indx4f(i,j,k,ibatch, n,n,6) ]
 #define Xarray(i,ibatch) Xarray_[ indx2f(i,ibatch,n6) ]
 #define Yarray(i,ibatch) Yarray_[ indx2f(i,ibatch,n6) ]
+#define Zarray(i,ibatch) Zarray_[ indx2f(i,ibatch,n6) ]
+#define Warray(i,ibatch) Warray_[ indx2f(i,ibatch,n6) ]
 
 
         //  ---------------------
         //  initialize the arrays
+        //  save a copy of Xarray in Z
         //  ---------------------
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
         for(int i=1; i <= n6; i++) {
               T const r1 = (i + (ibatch-1)*n6 );
               T const r2 = n6*batchCount;
+
+              // --------------------------------
+              // note Zarray is a copy of Xarray
+              // --------------------------------
               Xarray(i,ibatch) = r1/r2;
+              Zarray(i,ibatch) = Xarray(i,ibatch);
+              Yarray(i,ibatch) = 0;
+              Warray(i,ibatch) = 0;
               };
               };
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
@@ -95,18 +112,37 @@ T test_kronmult6_batched( int const n, int const batchCount )
 
 
 
-
+#ifdef USE_GPU
         {
         dim3 grid(batchCount,1,1);
         dim3 block(16,16,1);
 
+        // --------------------------------------------
+        // note  the input Zarray will be over-written
+        // --------------------------------------------
         kronmult6_batched<T><<< grid, block >>>( n,
                            Aarray_,
-                           Xarray_,
+                           Zarray_,
+                           Yarray_,
+                           Warray_,
+                           batchCount );
+
+        // -------------------------------------------
+        // note important to wait for kernel to finish
+        // -------------------------------------------
+        cudaError_t istat = cudaDeviceSynchronize();
+        assert( istat == cudaSuccess );
+        }
+#else
+        {
+        kronmult6_batched<T>( n,
+                           Aarray_,
+                           Zarray_,
                            Yarray_,
                            Warray_,
                            batchCount );
         }
+#endif
 
 
 
@@ -143,7 +179,7 @@ T test_kronmult6_batched( int const n, int const batchCount )
                 for(int i5=1; i5 <= n; i5++) {
                 for(int i6=1; i6 <= n; i6++) {
 
-                   int const ic = indx6f( i6,i5,i4,i3,i2,i1,n,n,n,n,n);
+                   int const ic = 1+indx6f( i6,i5,i4,i3,i2,i1,n,n,n,n,n);
                    T Y_ic = 0;
 
                    for(int j1=1; j1 <= n; j1++) {
@@ -156,7 +192,7 @@ T test_kronmult6_batched( int const n, int const batchCount )
                       // -------------------------------
                       // note last index i6 goes fastest
                       // -------------------------------
-                      int const jc = indx6f( j6,j5,j4,j3,j2,j1,n,n,n,n,n);
+                      int const jc = 1+indx6f( j6,j5,j4,j3,j2,j1,n,n,n,n,n);
 
                       T const C_ic_jc = A1(i1,j1)*A2(i2,j2)*A3(i3,j3)*A4(i4,j4)*A5(i5,j5)*A6(i6,j6);
 
@@ -172,6 +208,17 @@ T test_kronmult6_batched( int const n, int const batchCount )
 
                    T const abs_err = ABS( Y_ic - Y(ic) );
                    max_abserr = MAX( max_abserr, abs_err );
+
+                   if (idebug >= 1) {
+                       T const tol = 1.0/(1000.0 * 1000.0);
+                       if (abs_err > tol ) {
+                             std::cout << " ic = " << ic 
+                                     << " Y_ic = " << Y_ic
+                                     << " Y(ic) =  " << Y(ic)
+                                     << " abs_err = " << abs_err << "\n";
+                       };
+                   };
+                                    
 
                 };
                 };
@@ -190,6 +237,7 @@ T test_kronmult6_batched( int const n, int const batchCount )
         myfree( Aarray_ ); Aarray_ = nullptr;
         myfree( Xarray_ ); Xarray_ = nullptr;
         myfree( Yarray_ ); Yarray_ = nullptr;
+        myfree( Zarray_ ); Zarray_ = nullptr;
         myfree( Warray_ ); Warray_ = nullptr;
 
         return(max_abserr);
@@ -199,25 +247,43 @@ T test_kronmult6_batched( int const n, int const batchCount )
 #undef Aarray
 #undef Xarray
 #undef Yarray
+#undef Zarray
+#undef Warray
 }
 
 
                       
 int main() {
 
-        int const inc = 5;
-        int const batchCount_max = 10;
+        int const idebug = 1;
 
         int nerrors = 0;
-        for(int batchCount=1; batchCount <= batchCount_max; batchCount += inc) {
-        for(int n=1; n <= 8; n++) {
-                double const max_abserr =  test_kronmult6_batched<double>(n, batchCount );
+        int const ncase = 3;
+        for(int icase=1; icase <= ncase; icase++) {
+             int batchCount = 1;
+             if (icase == 1) {
+                     batchCount = 1;
+             }
+             else if (icase == 2) {
+                     batchCount = 16;
+             }
+             else if (icase == 3) {
+                     batchCount = 100;
+             };
+
+           for(int n=1; n <= 4; n++) {
+                double const max_abserr =  test_kronmult6_batched<double>(n, batchCount, idebug );
                 double const tol = 1.0/(1000.0 * 1000.0);
                 bool const isok = (max_abserr <= tol);
                 if (!isok) {
                         nerrors += 1;
                 };
-        };
+
+                if ((idebug >= 1) || (!isok)) {
+                        std::cout << " n = " << n << " batchCount = " << batchCount
+                                  << " max_abserr= " << max_abserr << "\n";
+                };
+           };
         };
 
 
