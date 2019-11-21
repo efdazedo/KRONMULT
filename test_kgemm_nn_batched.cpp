@@ -435,9 +435,9 @@ int main()
 {
         int const idebug = 0;
         int const inc = 7;
-        int const kk_max = 40;
-        int const mm_max = 40;
-        int const nn_max = 40;
+        int const kk_max = 65;
+        int const mm_max = 65;
+        int const nn_max = 65;
         int const batchCount_max = 2*inc + 1;
         double const tol = 1.0/(1000.0*1000.0);
 
