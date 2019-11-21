@@ -1,14 +1,7 @@
+#include "kroncommon.hpp"
 #include "kgemm_nt_batched.hpp"
 
 
-#ifdef USE_GPU
-#include <cuda.h>
-#include <cuda_runtime.h>
-
-#define GLOBAL  __global__ 
-#else
-#define GLOBAL
-#endif
 
 void kgemm_nt_batched( int const mm, int const nn, int const kk, 
                        double const alpha, 

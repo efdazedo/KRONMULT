@@ -1,14 +1,9 @@
-
 #ifndef KGEMM_NT_BATCHED_H
 #define KGEMM_NT_BATCHED_H 1
 
+#include "kroncommon.hpp"
 #include "kgemm_nt.hpp"
 
-#ifdef USE_GPU
-#define GLOBAL __global__
-#else
-#define GLOBAL
-#endif
 
 template<typename T>
 GLOBAL_FUNCTION
@@ -57,7 +52,6 @@ void kgemm_nt_batched( int const mm, int const nn, int const kk,
 }
 
 
-#undef GLOBAL
 #undef Aarray
 #undef Barray
 #undef Carray
