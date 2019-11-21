@@ -1,5 +1,5 @@
-#ifndef KRONMULT_HPP
-#define KRONMULT_HPP 1
+#ifndef KRONMULT6_BATCHED_HPP
+#define KRONMULT6_BATCHED_HPP 1
 
 
 #include "kronmult6.hpp"
@@ -15,15 +15,15 @@ GLOBAL
 void kronmult6_batched(
                        int const n,
                        T const Aarray_[],
-                       T Xarray_[],
-                       T Yarray_[],
-                       T Warray_[],
+                       T X_[],
+                       T Y_[],
+                       T W_[],
                        int const batchCount)
 //
 // conceptual shape of Aarray is  (n,n,6,batchCount)
-// Xarray is (n^6, batchCount)
-// Yarray is (n^6, batchCount)
-// Warray is (n^6, batchCount)
+// X_ is (n^6, batchCount)
+// Y_ is (n^6, batchCount)
+// W_ is (n^6, batchCount)
 //
 {
 #ifdef USE_GPU
@@ -40,7 +40,6 @@ void kronmult6_batched(
         int const n2 = n*n;
         int const n4 = n2*n2;
         int const n6 = n2 * n4;
-        int const ldA = 6 * n6;
 
 #ifndef indx4f
 #define indx4f(i1,i2,i3,i4, n1,n2,n3) \
@@ -62,7 +61,7 @@ void kronmult6_batched(
                 T const * const A4 = &(Aarray(1,1,4,ibatch));
                 T const * const A5 = &(Aarray(1,1,5,ibatch));
                 T const * const A6 = &(Aarray(1,1,6,ibatch));
-
+                int const nvec = 1;
                 kronmult6( n, nvec, A1,A2,A3,A4,A5,A6, Xp, Yp, Wp );
         };
 

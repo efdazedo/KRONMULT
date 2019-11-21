@@ -17,10 +17,12 @@
 #endif
 
 #ifdef USE_GPU
+#define GLOBAL __global__
 #define SYNCTHREADS __syncthreads()
 #define SHARED_MEMORY __shared__
 #define DEVICE __device__
 #else
+#define GLOBAL 
 #define SYNCTHREADS 
 #define SHARED_MEMORY 
 #define DEVICE 
@@ -161,12 +163,6 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
 
 
-#undef MAX
-#undef MIN
-#undef indx2f
-#undef SYNCTHREADS 
-#undef SHARED_MEMORY 
-#undef DEVICE 
 #undef A
 #undef B
 #undef C

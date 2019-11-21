@@ -160,12 +160,6 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 
 
 
-#undef MAX
-#undef MIN
-#undef indx2f
-#undef SYNCTHREADS 
-#undef SHARED_MEMORY 
-#undef DEVICE 
 #undef A
 #undef B
 #undef C

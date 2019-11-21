@@ -11,7 +11,7 @@
 //  -------------------------------------------
 template<typename T>
 DEVICE
-void kronmult2( int const n, 
+void kronmult1( int const n, 
                 int const nvec,
                 T   const A1_[],
                 T   X_[],

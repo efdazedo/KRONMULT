@@ -31,12 +31,10 @@ void kronmult3( int const n,
     int const n3 = n*n2;
 
     int const ldX = n3;
-    int const ldY = n3;
     int const ldW = n3;
 
 
 #define X(i,j)  X_[ indx2f(i,j,ldX) ]
-#define Y(i,j)  Y_[ indx2f(i,j,ldY) ]
 #define W(i,j)  W_[ indx2f(i,j,ldW) ]
 
     for(int i=1; i <= nvec; i++) {
@@ -89,7 +87,6 @@ void kronmult3( int const n,
 
 
 #undef X
-#undef Y
 #undef W
 #undef Xi
 #undef Wi

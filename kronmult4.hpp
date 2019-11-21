@@ -31,15 +31,12 @@ void kronmult4( int const n,
     int const n2 = n*n;
     int const n3 = n*n2;
     int const n4 = n2*n2;
-    int const n5 = n*n4;
 
     int const ldX = n4;
-    int const ldY = n4;
     int const ldW = n4;
 
 
 #define X(i,j)  X_[ indx2f(i,j,ldX) ]
-#define Y(i,j)  Y_[ indx2f(i,j,ldY) ]
 #define W(i,j)  W_[ indx2f(i,j,ldW) ]
 
     for(int i=1; i <= nvec; i++) {
@@ -92,7 +89,6 @@ void kronmult4( int const n,
 
 
 #undef X
-#undef Y
 #undef W
 #undef Xi
 #undef Wi
