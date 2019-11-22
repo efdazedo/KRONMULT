@@ -100,11 +100,5 @@ void kronmult2( int const n,
 
 
 
-#undef X
-#undef W
-#undef Xi
-#undef Wi
-
-
 
 #endif
