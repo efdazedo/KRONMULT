@@ -245,7 +245,7 @@ T test_kronmult6_batched( int const n, int const batchCount,
 #define A6(i,j) A6_[ indx2f(i,j,n) ]
 
 
-
+                #pragma omp parallel for collapse(6)  reduction(max:max_abserr)
                 for(int i1=1; i1 <= n; i1++) {
                 for(int i2=1; i2 <= n; i2++) {
                 for(int i3=1; i3 <= n; i3++) {
@@ -384,9 +384,9 @@ int main() {
                bool const do_check = 0;
                int const idebug = 0;
 
-               int const ntimes = 10;
+               int const ntimes = 5;
                for(int it=1; it < ntimes; it++) {
-                double const max_abserr =  test_kronmult6_batched<double>(n, batchCount, idebug, do_check );
+                test_kronmult6_batched<double>(n, batchCount, idebug, do_check );
                };
         };
 

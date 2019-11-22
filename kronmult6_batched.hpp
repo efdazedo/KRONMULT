@@ -48,6 +48,9 @@ void kronmult6_batched(
 #define W(i,j) W_[ indx2f(i,j,n6) ]
 #define Aarray(i1,i2,i3,i4) Aarray_[ indx4f(i1,i2,i3,i4, n,n,6 ) ]
 
+#ifndef USE_GPU
+#pragma omp parallel for
+#endif
         for(int ibatch=iz_start; ibatch <= batchCount; ibatch += iz_size) {
                 T* const Xp = &( X(1,ibatch) );
                 T* const Yp = &( Y(1,ibatch) );
