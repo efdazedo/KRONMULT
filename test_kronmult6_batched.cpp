@@ -109,12 +109,33 @@ T test_kronmult6_batched( int const n, int const batchCount,
         T *dYarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
         T *dWarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
 
+        auto Aarray = [&] (int const i, 
+                           int const j, 
+                           int const k, 
+                           int const ibatch ) -> T& {
+                return(  Aarray_[ indx4f(i,j,k,ibatch, n,n,6) ] );
+        };
 
-#define Aarray(i,j,k,ibatch) Aarray_[ indx4f(i,j,k,ibatch, n,n,6) ]
-#define Xarray(i,ibatch) Xarray_[ indx2f(i,ibatch,n6) ]
-#define Yarray(i,ibatch) Yarray_[ indx2f(i,ibatch,n6) ]
-#define Zarray(i,ibatch) Zarray_[ indx2f(i,ibatch,n6) ]
-#define Warray(i,ibatch) Warray_[ indx2f(i,ibatch,n6) ]
+        auto Xarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( Xarray_[ indx2f(i,ibatch,n6) ] );
+        };
+
+        auto Yarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( Yarray_[ indx2f(i,ibatch,n6) ] );
+        };
+
+        auto Zarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( Zarray_[ indx2f(i,ibatch,n6) ] );
+        };
+
+        auto Warray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( Warray_[ indx2f(i,ibatch,n6) ] );
+        };
+
 
 
         //  ---------------------
@@ -234,15 +255,44 @@ T test_kronmult6_batched( int const n, int const batchCount,
                 T const * const X_ = &(Xarray(1,ibatch));
                 T       * const Y_ = &(Yarray(1,ibatch));
 
-#define X(ic) X_[ (ic)-1 ]
-#define Y(ic) Y_[ (ic)-1 ]
+                auto X = [&] (int const i) -> T const & {
+                        return( X_[ (i)-1 ]);
+                };
 
-#define A1(i,j) A1_[ indx2f(i,j,n) ]
-#define A2(i,j) A2_[ indx2f(i,j,n) ]
-#define A3(i,j) A3_[ indx2f(i,j,n) ]
-#define A4(i,j) A4_[ indx2f(i,j,n) ]
-#define A5(i,j) A5_[ indx2f(i,j,n) ]
-#define A6(i,j) A6_[ indx2f(i,j,n) ]
+                auto Y = [&] (int const i) -> T& {
+                        return( Y_[ (i)-1 ]);
+                };
+
+                auto A1 = [&](int const i,
+                              int const j) -> T const & {
+                        return( A1_[ indx2f(i,j,n) ] );
+                };
+
+                auto A2 = [&](int const i,
+                              int const j) -> T const & {
+                        return( A2_[ indx2f(i,j,n) ] );
+                };
+
+                auto A3 = [&](int const i,
+                              int const j) -> T const & {
+                        return( A3_[ indx2f(i,j,n) ] );
+                };
+
+                auto A4 = [&](int const i,
+                              int const j) -> T const & {
+                        return( A4_[ indx2f(i,j,n) ] );
+                };
+
+                auto A5 = [&](int const i,
+                              int const j) -> T const & {
+                        return( A5_[ indx2f(i,j,n) ] );
+                };
+
+                auto A6 = [&](int const i,
+                              int const j) -> T const & {
+                        return( A6_[ indx2f(i,j,n) ] );
+                };
+
 
 
                 #pragma omp parallel for collapse(6)  reduction(max:max_abserr)
@@ -268,7 +318,8 @@ T test_kronmult6_batched( int const n, int const batchCount,
                       // -------------------------------
                       int const jc = 1+indx6f( j6,j5,j4,j3,j2,j1,n,n,n,n,n);
 
-                      T const C_ic_jc = A1(i1,j1)*A2(i2,j2)*A3(i3,j3)*A4(i4,j4)*A5(i5,j5)*A6(i6,j6);
+
+                      T const C_ic_jc = ((((A1(i1,j1)*A2(i2,j2))*A3(i3,j3))*A4(i4,j4))*A5(i5,j5))*A6(i6,j6);
 
                       T const X_jc = X(jc);
 
@@ -323,14 +374,7 @@ T test_kronmult6_batched( int const n, int const batchCount,
         free( Warray_ ); Warray_ = nullptr;
 
         return(max_abserr);
-#undef X
-#undef Y
 
-#undef Aarray
-#undef Xarray
-#undef Yarray
-#undef Zarray
-#undef Warray
 }
 
 
