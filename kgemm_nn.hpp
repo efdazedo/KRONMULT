@@ -81,13 +81,37 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         int const ip_Btmp = ifree; ifree += nb_k * nb_n;
         ifree = 0;
 
-#define A(ia,ja)  A_[ indx2f(ia,ja,ldA) ]
-#define B(ib,jb)  B_[ indx2f(ib,jb,ldB) ]
-#define C(ic,jc)  C_[ indx2f(ic,jc,ldC) ]
+        auto A = [&] (int const ia, 
+                      int const ja) -> T const & {
+                return( A_[ indx2f(ia,ja,ldA) ] );
+        };
 
-#define Atmp(i,j)  cache_memory[ ip_Atmp + indx2f(i,j,nb_m) ]
-#define Btmp(i,j)  cache_memory[ ip_Btmp + indx2f(i,j,nb_k) ]
-#define Ctmp(i,j)  cache_memory[ ip_Ctmp + indx2f(i,j,nb_m) ]
+        auto B = [&] (int const ib, 
+                      int const jb) -> T const & {
+                return( B_[ indx2f(ib,jb,ldB) ] );
+        };
+
+        auto C = [&] (int const ic, 
+                      int const jc) -> T& {
+                return( C_[ indx2f(ic,jc,ldC) ] );
+        };
+
+
+        auto Atmp = [&] (int const i,
+                         int const j) -> T& {
+                return( cache_memory[ ip_Atmp + indx2f(i,j,nb_m) ]);
+        };
+
+        auto Btmp = [&] (int const i,
+                         int const j) -> T& {
+                return( cache_memory[ ip_Btmp + indx2f(i,j,nb_k) ]);
+        };
+
+        auto Ctmp = [&] (int const i,
+                         int const j) -> T& {
+                return( cache_memory[ ip_Ctmp + indx2f(i,j,nb_m) ]);
+        };
+
 
     bool const is_Atmp_fit = (mm <= nb_m) && (kk <= nb_k);
     bool const need_load_Atmp = !is_Atmp_fit;
@@ -192,11 +216,5 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 
 
 
-#undef A
-#undef B
-#undef C
-#undef Atmp
-#undef Btmp
-#undef Ctmp
 
 #endif
