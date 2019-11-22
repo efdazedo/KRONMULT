@@ -1,5 +1,4 @@
-CXXFLAGS = -DUSE_GPU  -g
-NVCC=nvcc -x cu 
+include make.inc
 
 KRONSRC=  \
 	kgemm_nn_batched.hpp \
@@ -23,13 +22,13 @@ all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched
 
 
 test_kgemm_nn_batched: test_kgemm_nn_batched.cpp kgemm_nn_batched.hpp kgemm_nn.hpp
-	$(NVCC) $(CXXFLAGS) -o test_kgemm_nn_batched test_kgemm_nn_batched.cpp -lcuda
+	$(CXX) $(CXXFLAGS) -o test_kgemm_nn_batched test_kgemm_nn_batched.cpp -lcuda
 
 test_kgemm_nt_batched: test_kgemm_nt_batched.cpp kgemm_nt_batched.hpp kgemm_nt.hpp
-	$(NVCC) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp -lcuda
+	$(CXX) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp -lcuda
 
 test_kronmult6_batched: test_kronmult6_batched.cpp $(KRONSRC)
-	$(NVCC) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp
+	$(CXX) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp
 
 clean:
 	touch test_kronmult6_batched 
