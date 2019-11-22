@@ -1,7 +1,5 @@
 #include <iostream>
 #include <cassert>
-#include <chrono>
-#include <unistd.h>
 
 #include "kroncommon.hpp"
 #include "kronmult6_batched.hpp"
@@ -11,44 +9,17 @@
 #include <cuda_runtime.h>
 #else
 #include <stdlib.h>
-#include <string.h>
 #endif
-
-
-static inline
-void host2gpu( void *dest, void *src, size_t nbytes )
-{
-#ifdef USE_GPU
-        cudaError_t istat = cudaMemcpy( dest, 
-                                        src, 
-                                        nbytes,  
-                                        cudaMemcpyHostToDevice );
-        assert( istat == cudaSuccess );
-#else
-        memcpy( dest, src, nbytes );
-#endif
-}
-
-static inline
-void gpu2host( void *dest, void *src, size_t nbytes )
-{
-#ifdef USE_GPU
-        cudaError_t istat = cudaMemcpy( dest,
-                                        src,
-                                        nbytes,
-                                        cudaMemcpyDeviceToHost);
-        assert( istat == cudaSuccess );
-#else
-        memcpy( dest, src, nbytes );
-#endif
-
-}
 
 static inline
 void *myalloc( size_t nbytes ) {
               void *devPtr = nullptr;
 #ifdef USE_GPU
-              cudaError_t istat = cudaMalloc( &devPtr, nbytes );
+        // -------------------------
+        // use unified shared memory
+        // for simplicity
+        // -------------------------
+              cudaError_t istat = cudaMallocManaged( &devPtr, nbytes );
               assert( istat == cudaSuccess );
 #else
               devPtr = malloc( nbytes );
@@ -69,10 +40,7 @@ void myfree( void * devPtr ) {
      
 
 template<typename T>
-T test_kronmult6_batched( int const n, int const batchCount, 
-                          int const idebug = 0, 
-                          bool const do_check  = true )
-        
+T test_kronmult6_batched( int const n, int const batchCount, int const idebug = 0  )
 {
         int const n2 = n*n;
         int const n3 = n*n2;
@@ -91,24 +59,19 @@ T test_kronmult6_batched( int const n, int const batchCount,
         // Warray is (n6 by batchCount)
         // ----------------------------
 
-        T *Aarray_ = (T *) malloc( sizeof(T)*n*n*6*batchCount);
-        T *Xarray_ = (T *) malloc( sizeof(T)*n6 * batchCount);
-        T *Yarray_ = (T *) malloc( sizeof(T)*n6 * batchCount);
-        T *Zarray_ = (T *) malloc( sizeof(T)*n6 * batchCount);
-        T *Warray_ = (T *) malloc( sizeof(T)*n6 * batchCount);
+
+
+        T *Aarray_ = (T *) myalloc( sizeof(T)*n*n*6*batchCount);
+        T *Xarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
+        T *Zarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
+        T *Yarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
+        T *Warray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
 
         assert( Aarray_ != nullptr );
         assert( Xarray_ != nullptr );
         assert( Yarray_ != nullptr );
         assert( Zarray_ != nullptr );
         assert( Warray_ != nullptr );
-
-        T *dAarray_ = (T *) myalloc( sizeof(T)*n*n*6*batchCount);
-        T *dXarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
-        T *dZarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
-        T *dYarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
-        T *dWarray_ = (T *) myalloc( sizeof(T)*n6 * batchCount );
-
 
 #define Aarray(i,j,k,ibatch) Aarray_[ indx4f(i,j,k,ibatch, n,n,6) ]
 #define Xarray(i,ibatch) Xarray_[ indx2f(i,ibatch,n6) ]
@@ -148,17 +111,7 @@ T test_kronmult6_batched( int const n, int const batchCount,
         };
 
 
-        // ---------------------
-        // copy from host to GPU
-        // interface is host2gpu( dest, src, nbytes )
-        // ---------------------
-        host2gpu( dAarray_, Aarray_, sizeof(T)*n*n*6*batchCount );
-        host2gpu( dXarray_, Xarray_, sizeof(T)*n6*batchCount );
-        host2gpu( dYarray_, Yarray_, sizeof(T)*n6*batchCount );
-        host2gpu( dZarray_, Zarray_, sizeof(T)*n6*batchCount );
-        host2gpu( dWarray_, Warray_, sizeof(T)*n6*batchCount );
 
-        auto time_start = std::chrono::steady_clock::now();
 #ifdef USE_GPU
         {
         int constexpr warpsize = 32;
@@ -169,10 +122,10 @@ T test_kronmult6_batched( int const n, int const batchCount,
         // note  the input Zarray will be over-written
         // --------------------------------------------
         kronmult6_batched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           Aarray_,
+                           Zarray_,
+                           Yarray_,
+                           Warray_,
                            batchCount );
 
         // -------------------------------------------
@@ -184,46 +137,20 @@ T test_kronmult6_batched( int const n, int const batchCount,
 #else
         {
         kronmult6_batched<T>( n,
-                           dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           Aarray_,
+                           Zarray_,
+                           Yarray_,
+                           Warray_,
                            batchCount );
         }
 #endif
-        auto time_end = std::chrono::steady_clock::now();
-        auto elapsed_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
-        auto elapsed_time_sec = elapsed_time_ms * 0.001;
-
-        // ------------------------------------------
-        // copy from gpu to host
-        // interface is gpu2host( dest, src, nbytes )
-        // ------------------------------------------
-        gpu2host( Yarray_, dYarray_,  sizeof(T)*n6*batchCount);
 
 
 
-        {
-          int const n7 = n*n6;
-          double const giga = 1000.0*1000.0*1000.0;
-          double const flops = 12.0*n7 * batchCount;
-          double const gflops = flops/giga;
-          double const gflops_per_sec = gflops  /elapsed_time_sec;
-          if (flops > giga) {
-                  std::cout << " n = " << n 
-                            << " batchCount = " << batchCount
-                            << " elapsed_time = " << elapsed_time_sec << " seconds "
-                            << " Gflops/sec = " << gflops_per_sec
-                            << "\n";
-          };
-        };
-
-
-   T max_abserr = 0;
-   if (do_check) {
         // -------------
         // check results
         // -------------
+        T max_abserr = 0;
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
                 T const * const A1_ = &(Aarray(1,1,1,ibatch));
                 T const * const A2_ = &(Aarray(1,1,2,ibatch));
@@ -302,25 +229,17 @@ T test_kronmult6_batched( int const n, int const batchCount,
                 };
        }; // end for ibatch
 
-      };
-
 
 
         // -------
         // cleanup
         // -------
 
-        myfree( dAarray_ ); dAarray_ = nullptr;
-        myfree( dXarray_ ); dXarray_ = nullptr;
-        myfree( dYarray_ ); dYarray_ = nullptr;
-        myfree( dZarray_ ); dZarray_ = nullptr;
-        myfree( dWarray_ ); dWarray_ = nullptr;
-
-        free( Aarray_ ); Aarray_ = nullptr;
-        free( Xarray_ ); Xarray_ = nullptr;
-        free( Yarray_ ); Yarray_ = nullptr;
-        free( Zarray_ ); Zarray_ = nullptr;
-        free( Warray_ ); Warray_ = nullptr;
+        myfree( Aarray_ ); Aarray_ = nullptr;
+        myfree( Xarray_ ); Xarray_ = nullptr;
+        myfree( Yarray_ ); Yarray_ = nullptr;
+        myfree( Zarray_ ); Zarray_ = nullptr;
+        myfree( Warray_ ); Warray_ = nullptr;
 
         return(max_abserr);
 #undef X
@@ -339,20 +258,21 @@ int main() {
 
         int const idebug = 1;
 
-        int batch_table[] = {1,16,128};
-        int const size_batch_table = sizeof(batch_table)/sizeof(batch_table[0]);
-
-        int n_table[] = {1, 2,3, 4 };
-        int const size_n_table = sizeof(n_table)/sizeof(n_table[0]);
-
-
         int nerrors = 0;
+        int const ncase = 3;
+        for(int icase=1; icase <= ncase; icase++) {
+             int batchCount = 1;
+             if (icase == 1) {
+                     batchCount = 1;
+             }
+             else if (icase == 2) {
+                     batchCount = 16;
+             }
+             else if (icase == 3) {
+                     batchCount = 100;
+             };
 
-        for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
-        for (int in_table = 0;  in_table < size_n_table; in_table++) {
-                int const n = n_table[in_table];
-                int const batchCount = batch_table[ibatch_table];
-
+           for(int n=1; n <= 4; n++) {
                 double const max_abserr =  test_kronmult6_batched<double>(n, batchCount, idebug );
                 double const tol = 1.0/(1000.0 * 1000.0);
                 bool const isok = (max_abserr <= tol);
@@ -364,7 +284,7 @@ int main() {
                         std::cout << " n = " << n << " batchCount = " << batchCount
                                   << " max_abserr= " << max_abserr << "\n";
                 };
-        };
+           };
         };
 
 
@@ -374,24 +294,6 @@ int main() {
         else {
                 std::cout << "There are " << nerrors << " errors" << "\n";
         };
-
-        if (nerrors == 0) {
-               // ---------------------
-               // try performance test
-               // ---------------------
-               int const n = 8;
-               int const batchCount = 256;
-               bool const do_check = 0;
-               int const idebug = 0;
-
-               int const ntimes = 10;
-               for(int it=1; it < ntimes; it++) {
-                double const max_abserr =  test_kronmult6_batched<double>(n, batchCount, idebug, do_check );
-               };
-        };
-
-
-
 
   return(0);
 }
