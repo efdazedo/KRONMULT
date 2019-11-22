@@ -3,28 +3,67 @@
 #include <chrono>
 #include <unistd.h>
 
+#ifdef USE_GPU
+#include <cuda_runtime.h>
+#else
+#include <stdlib.h>
+#include <string.h>
+#endif
+
+#include "kroncommon.hpp"
 #include "kgemm_nn_batched.hpp"
 
+static inline
+void host2gpu( void *dest, void *src, size_t nbytes )
+{
 #ifdef USE_GPU
-#include <cuda.h>
-#include <cuda_runtime.h>
+        cudaError_t istat = cudaMemcpy( dest, 
+                                        src, 
+                                        nbytes,  
+                                        cudaMemcpyHostToDevice );
+        assert( istat == cudaSuccess );
+#else
+        memcpy( dest, src, nbytes );
+#endif
+}
+
+static inline
+void gpu2host( void * dest, void * src, size_t nbytes )
+{
+#ifdef USE_GPU
+        cudaError_t istat = cudaMemcpy( dest,
+                                        src,
+                                        nbytes,
+                                        cudaMemcpyDeviceToHost);
+        assert( istat == cudaSuccess );
+#else
+        memcpy( dest, src, nbytes );
 #endif
 
-#ifndef indx2f
-#define indx2f(i,j,ld)  (((i)-1) + ((j)-1)*(ld))
-#endif
+}
 
-#ifndef MAX
-#define MAX(x,y)  (  ((x) > (y))?(x):(y) )
+static inline
+void *myalloc( size_t const nbytes ) {
+              void *devPtr = nullptr;
+#ifdef USE_GPU
+              cudaError_t istat = cudaMalloc( &devPtr, nbytes );
+              assert( istat == cudaSuccess );
+#else
+              devPtr = malloc( nbytes );
 #endif
+              assert( devPtr != nullptr );
+              return(devPtr);
+}
 
-#ifndef MIN
-#define MIN(x,y)  (  ((x) < (y))?(x):(y) )
+static inline
+void myfree( void * devPtr ) {
+#ifdef USE_GPU
+                cudaError_t istat = cudaFree( devPtr);
+                assert( istat == cudaSuccess );
+#else
+                free( devPtr );
 #endif
-
-#ifndef ABS
-#define ABS(x) (((x) >= 0) ? (x) : (-(x)) )
-#endif
+}
 
 template<typename T>
 T test_kgemm_nn_batched( int const mm,
@@ -82,14 +121,10 @@ T test_kgemm_nn_batched( int const mm,
 
         {
                 size_t nbytes = sizeof(T *) * batchCount;
-                cudaError_t istat_ddAarray = cudaMalloc(  &ddAarray_, nbytes );
-                assert(istat_ddAarray == cudaSuccess );
+                ddAarray_ = (T **) myalloc( nbytes );
+                ddBarray_ = (T **) myalloc( nbytes );
+                ddCarray_ = (T **) myalloc( nbytes );
 
-                cudaError_t istat_ddBarray = cudaMalloc(  &ddBarray_, nbytes );
-                assert(istat_ddBarray == cudaSuccess );
-
-                cudaError_t istat_ddCarray = cudaMalloc(  &ddCarray_, nbytes );
-                assert(istat_ddCarray == cudaSuccess );
         };
 
         
@@ -147,19 +182,13 @@ T test_kgemm_nn_batched( int const mm,
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
 
                 size_t const nbytes_A = sizeof(T)*ldA*ncolA;
-                T *dA = nullptr;
-                cudaError_t istat_dA = cudaMalloc( &dA, nbytes_A );
-                assert( istat_dA == cudaSuccess );
+                T *dA = (T *) myalloc( nbytes_A );
 
                 size_t const nbytes_B = sizeof(T)*ldB*ncolB;
-                T *dB = nullptr;
-                cudaError_t istat_dB = cudaMalloc( &dB, nbytes_B );
-                assert( istat_dB == cudaSuccess );
+                T *dB = (T *) myalloc( nbytes_B );
 
                 size_t const nbytes_C = sizeof(T)*ldC*ncolC;
-                T *dC = nullptr;
-                cudaError_t istat_dC = cudaMalloc( &dC, nbytes_C );
-                assert( istat_dC == cudaSuccess );
+                T *dC = (T *) myalloc( nbytes_C );;
 
                 assert( dA != nullptr );
                 assert( dB != nullptr );
@@ -176,30 +205,24 @@ T test_kgemm_nn_batched( int const mm,
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
                 {
-                size_t nbytes = sizeof(T)*ldA*ncolA;
-                void * const dest = hdAarray_[ibatch];
-                void const * const src =  Aarray_[ibatch];
-                cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
-                cudaError_t const istat_cpy = cudaMemcpy(  dest, src, nbytes, kinddir );
-                assert( istat_cpy == cudaSuccess );
+                size_t const nbytes = sizeof(T)*ldA*ncolA;
+                void * dest = hdAarray_[ibatch];
+                void * src =  Aarray_[ibatch];
+                host2gpu( dest, src, nbytes );
                 };
 
                 {
                 size_t nbytes = sizeof(T)*ldB*ncolB;
-                void * const dest = hdBarray_[ibatch];
-                void const * const src =  Barray_[ibatch];
-                cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
-                cudaError_t const istat_cpy = cudaMemcpy(  dest, src, nbytes, kinddir );
-                assert( istat_cpy == cudaSuccess );
+                void * dest = hdBarray_[ibatch];
+                void * src =  Barray_[ibatch];
+                host2gpu( dest, src, nbytes );
                 };
 
                 {
                 size_t nbytes = sizeof(T)*ldC*ncolC;
-                void * const dest = hdCarray_[ibatch];
-                void const * const src =  Carray_[ibatch];
-                cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
-                cudaError_t const istat_cpy = cudaMemcpy(  dest, src, nbytes, kinddir );
-                assert( istat_cpy == cudaSuccess );
+                void * dest = hdCarray_[ibatch];
+                void * src =  Carray_[ibatch];
+                host2gpu( dest,src,nbytes );
                 };
         };
 
@@ -210,26 +233,20 @@ T test_kgemm_nn_batched( int const mm,
                 size_t nbytes = sizeof( T *) * batchCount;
                 void *dest = ddAarray_;
                 void *src = &(hdAarray_[0]);
-                cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
-                cudaError_t const istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
-                assert( istat_cpy == cudaSuccess );
+                host2gpu( dest, src, nbytes );
         }
         {
                 size_t nbytes = sizeof( T *) * batchCount;
                 void *dest = ddBarray_;
                 void *src = &(hdBarray_[0]);
-                cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
-                cudaError_t const istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
-                assert( istat_cpy == cudaSuccess );
+                host2gpu( dest, src, nbytes );
         }
 
         {
                 size_t nbytes = sizeof( T *) * batchCount;
                 void *dest = ddCarray_;
                 void *src = &(hdCarray_[0]);
-                cudaMemcpyKind const kinddir = cudaMemcpyHostToDevice;
-                cudaError_t const istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
-                assert( istat_cpy == cudaSuccess );
+                host2gpu( dest, src, nbytes );
         }
 
 
@@ -251,17 +268,9 @@ T test_kgemm_nn_batched( int const mm,
 
         {
          size_t nbytes = sizeof(int) * batchCount;
-         cudaError_t istat_ldA = cudaMalloc( &dldAarray_, nbytes );
-         assert( istat_ldA == cudaSuccess );
-         assert( dldAarray_ != nullptr);
-
-         cudaError_t istat_ldB = cudaMalloc( &dldBarray_, nbytes );
-         assert( istat_ldB == cudaSuccess );
-         assert( dldBarray_ != nullptr);
-
-         cudaError_t istat_ldC = cudaMalloc( &dldCarray_, nbytes );
-         assert( istat_ldC == cudaSuccess );
-         assert( dldCarray_ != nullptr);
+         dldAarray_ = (int *) myalloc( nbytes );
+         dldBarray_ = (int *) myalloc( nbytes );
+         dldCarray_ = (int *) myalloc( nbytes );
         }
 
         // -------------------------------------------
@@ -272,26 +281,26 @@ T test_kgemm_nn_batched( int const mm,
                 size_t nbytes = sizeof(int) * batchCount;
                 void *src = &(ldAarray_[0]);
                 void *dest = dldAarray_;
-                cudaMemcpyKind kinddir = cudaMemcpyHostToDevice;
-                cudaError_t istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
+                host2gpu( dest, src, nbytes );
         }
 
         {
                 size_t nbytes = sizeof(int) * batchCount;
                 void *src = &(ldBarray_[0]);
                 void *dest = dldBarray_;
-                cudaMemcpyKind kinddir = cudaMemcpyHostToDevice;
-                cudaError_t istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
+                host2gpu( dest, src, nbytes );
         }
 
         {
                 size_t nbytes = sizeof(int) * batchCount;
                 void *src = &(ldCarray_[0]);
                 void *dest = dldCarray_;
-                cudaMemcpyKind kinddir = cudaMemcpyHostToDevice;
-                cudaError_t istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
+                host2gpu( dest, src, nbytes );
         }
 
+        auto time_start = std::chrono::steady_clock::now();
+
+#ifdef USE_GPU
         {
 
 
@@ -302,7 +311,6 @@ T test_kgemm_nn_batched( int const mm,
         cudaError_t istat_sync_start = cudaDeviceSynchronize();
         assert( istat_sync_start == cudaSuccess );
 
-        auto time_start = std::chrono::steady_clock::now();
 
         kgemm_nn_batched<T><<< batchCount, nthreads >>>( mm,nn,kk, 
                           alpha,
@@ -314,6 +322,18 @@ T test_kgemm_nn_batched( int const mm,
 
         cudaError_t istat_sync_end = cudaDeviceSynchronize();
         assert( istat_sync_end == cudaSuccess );
+        }
+#else
+        {
+        kgemm_nn_batched<T>( mm,nn,kk, 
+                          alpha,
+                          ddAarray_, dldAarray_,
+                          ddBarray_, dldBarray_,
+                          beta, 
+                          ddCarray_, dldCarray_,
+                          batchCount);
+        }
+#endif
 
         auto time_end = std::chrono::steady_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_end- time_start).count();
@@ -328,7 +348,6 @@ T test_kgemm_nn_batched( int const mm,
           };
 
 
-        }
 
 
         // -------------
@@ -338,14 +357,9 @@ T test_kgemm_nn_batched( int const mm,
                 size_t const nbytes = sizeof(T) * ldC*ncolC;
                 void * const dest = Carray_[ibatch];
                 void * const src = hdCarray_[ibatch];
-                cudaMemcpyKind kinddir = cudaMemcpyDeviceToHost;
-                cudaError_t istat_cpy = cudaMemcpy( dest, src, nbytes, kinddir );
+                gpu2host( dest, src, nbytes );
         };
 
-        {
-        cudaError_t istat_sync = cudaDeviceSynchronize();
-        assert( istat_sync == cudaSuccess );
-        }
 
         T max_abserr = 0;
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
@@ -388,40 +402,20 @@ T test_kgemm_nn_batched( int const mm,
         };
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
-                {
-                        cudaError_t istat = cudaFree( hdAarray_[ibatch] );
-                        assert( istat == cudaSuccess );
-                }
-                {
-                        cudaError_t istat = cudaFree( hdBarray_[ibatch] );
-                        assert( istat == cudaSuccess );
-                }
-                {
-                        cudaError_t istat = cudaFree( hdCarray_[ibatch] );
-                        assert( istat == cudaSuccess );
-                }
+                        myfree( hdAarray_[ibatch] );
+                        myfree( hdBarray_[ibatch] );
+                        myfree( hdCarray_[ibatch] );
              };
 
+
         {
-                cudaError_t istat_ddA = cudaFree( ddAarray_ );
-                assert( istat_ddA == cudaSuccess );
+                myfree( ddAarray_ );
+                myfree( ddBarray_ );
+                myfree( ddCarray_ );
 
-                cudaError_t istat_ddB = cudaFree( ddBarray_ );
-                assert( istat_ddB == cudaSuccess );
-
-                cudaError_t istat_ddC = cudaFree( ddCarray_ );
-                assert( istat_ddC == cudaSuccess );
-
-
-                cudaError_t istat_ldA = cudaFree( dldAarray_ );
-                assert( istat_ldA == cudaSuccess );
-
-                cudaError_t istat_ldB = cudaFree( dldBarray_ );
-                assert( istat_ldB == cudaSuccess );
-
-                cudaError_t istat_ldC = cudaFree( dldCarray_ );
-                assert( istat_ldC == cudaSuccess );
-
+                myfree( dldAarray_ );
+                myfree( dldBarray_ );
+                myfree( dldCarray_ );
 
         }
 
