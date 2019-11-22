@@ -21,18 +21,37 @@ void kgemm_nt_batched( int const mm, int const nn, int const kk,
 // ----------------------------
 // use Fortran 1-based indexing
 // ----------------------------
-#define Aarray(i)  Aarray_[ (i) - 1]
-#define Barray(i)  Barray_[ (i) - 1]
-#define Carray(i)  Carray_[ (i) - 1]
-
-#define ldAarray(i) ldAarray_[ (i) - 1]
-#define ldBarray(i) ldBarray_[ (i) - 1]
-#define ldCarray(i) ldCarray_[ (i) - 1]
 
 
+
+        auto Aarray = [&] (int const i) -> T* const & {
+                return(  Aarray_[ (i) - 1] );
+        };
+
+        auto Barray = [&] (int const i) -> T* const & {
+                return(  Barray_[ (i) - 1] );
+        };
+
+        auto Carray = [&] (int const i) -> T* const & {
+                return(  Carray_[ (i) - 1] );
+        };
+
+        auto ldAarray = [&] (int const i) -> int const & {
+                return( ldAarray_[ (i) - 1] );
+        };
+
+        auto ldBarray = [&] (int const i) -> int const & {
+                return( ldBarray_[ (i) - 1] );
+        };
+
+        auto ldCarray = [&] (int const i) -> int const & {
+                return( ldCarray_[ (i) - 1] );
+        };
 #ifdef USE_GPU
         int const iz_start = blockIdx.x + 1;
         int const iz_size =  gridDim.x;
+        assert( gridDim.y == 1);
+        assert( gridDim.z == 1);
 #else
         int const iz_start = 1;
         int const iz_size = 1;
@@ -52,12 +71,6 @@ void kgemm_nt_batched( int const mm, int const nn, int const kk,
 }
 
 
-#undef Aarray
-#undef Barray
-#undef Carray
-#undef ldAarray
-#undef ldBarray
-#undef ldCarray
 
 
 #endif

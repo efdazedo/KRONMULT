@@ -33,6 +33,8 @@ void kronmult6_batched(
         // -------------------------------------------
         int const iz_start = blockIdx.x + 1;
         int const iz_size =  gridDim.x;
+        assert( gridDim.y == 1);
+        assert( gridDim.z == 1);
 #else
         int const iz_start = 1;
         int const iz_size = 1;
@@ -40,13 +42,33 @@ void kronmult6_batched(
 
         int const n2 = n*n;
         int const n4 = n2*n2;
-        int const n6 = n2 * n4;
+        int const n6 = n2*n4;
 
 
-#define X(i,j) X_[ indx2f(i,j,n6) ]
-#define Y(i,j) Y_[ indx2f(i,j,n6) ]
-#define W(i,j) W_[ indx2f(i,j,n6) ]
-#define Aarray(i1,i2,i3,i4) Aarray_[ indx4f(i1,i2,i3,i4, n,n,6 ) ]
+
+        auto X = [&] (int const i,
+                      int const j) -> T& {
+                return(  X_[ indx2f(i,j,n6) ] );
+        };
+
+        auto Y = [&] (int const i,
+                      int const j) -> T& {
+                return(  Y_[ indx2f(i,j,n6) ] );
+        };
+
+        auto W = [&] (int const i,
+                      int const j) -> T& {
+                return(  W_[ indx2f(i,j,n6) ] );
+        };
+
+        auto Aarray = [&] (int const i1,
+                           int const i2,
+                           int const i3,
+                           int const i4) -> T const & {
+                return( Aarray_[ indx4f(i1,i2,i3,i4, n,n,6 ) ] );
+        };
+
+
 
 #ifndef USE_GPU
 #pragma omp parallel for
@@ -66,14 +88,6 @@ void kronmult6_batched(
         };
 
 }
-
-#undef X
-#undef Y
-#undef W
-#undef Aarray
-
-
-                       
 
 
 

@@ -43,10 +43,27 @@ void kronmult5_batched(
         int const n5 = n*n4;
 
 
-#define X(i,j) X_[ indx2f(i,j,n5) ]
-#define Y(i,j) Y_[ indx2f(i,j,n5) ]
-#define W(i,j) W_[ indx2f(i,j,n5) ]
-#define Aarray(i1,i2,i3,i4) Aarray_[ indx4f(i1,i2,i3,i4, n,n,5 ) ]
+        auto X = [&] (int const i,
+                      int const j) -> T& {
+                return(  X_[ indx2f(i,j,n5) ] );
+        };
+
+        auto Y = [&] (int const i,
+                      int const j) -> T& {
+                return(  Y_[ indx2f(i,j,n5) ] );
+        };
+
+        auto W = [&] (int const i,
+                      int const j) -> T& {
+                return(  W_[ indx2f(i,j,n5) ] );
+        };
+
+        auto Aarray = [&] (int const i1,
+                           int const i2,
+                           int const i3,
+                           int const i4) -> T const & {
+                return( Aarray_[ indx4f(i1,i2,i3,i4, n,n,5 ) ] );
+        };
 
         for(int ibatch=iz_start; ibatch <= batchCount; ibatch += iz_size) {
                 T* const Xp = &( X(1,ibatch) );
@@ -62,15 +79,6 @@ void kronmult5_batched(
         };
 
 }
-
-#undef X
-#undef Y
-#undef W
-#undef Aarray
-
-
-                       
-
 
 
 #endif
