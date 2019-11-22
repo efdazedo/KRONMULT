@@ -32,9 +32,16 @@ void kronmult2( int const n,
     int const ldX = n2;
     int const ldW = n2;
 
+    auto X = [&] (int const i,
+                  int const j) -> T& {
+            return( X_[ indx2f(i,j,ldX) ] );
+    };
 
-#define X(i,j)  X_[ indx2f(i,j,ldX) ]
-#define W(i,j)  W_[ indx2f(i,j,ldW) ]
+    auto W = [&] (int const i,
+                  int const j) -> T& {
+            return( W_[ indx2f(i,j,ldW) ] );
+    };
+
 
     for(int i=1; i <= nvec; i++) {
             T *Xi_ = &( X(1, i) );
@@ -45,8 +52,16 @@ void kronmult2( int const n,
             // Xi viewed as (n by n) array
             // Wi viewed as (n by n) array
             // ----------------------------
-#define Xi(i,j)  Xi_[ indx2f(i,j,ldXi) ]
-#define Wi(i,j)  Wi_[ indx2f(i,j,ldWi) ]
+
+            auto Xi = [&] (int const i,
+                           int const j) -> T& {
+                    return(  Xi_[ indx2f(i,j,ldXi) ] );
+            };
+
+            auto Wi = [&] (int const i,
+                           int const j) -> T& {
+                    return(  Wi_[ indx2f(i,j,ldWi) ] );
+            };
             // --------------------------------------------------------
             // Wi(1:n, 1:n) = Xi(1:n, 1:n) * transpose(A1(1:n,1:n))
             // --------------------------------------------------------
