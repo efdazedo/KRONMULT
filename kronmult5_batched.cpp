@@ -9,10 +9,11 @@ void kronmult5_batched(
                        int const batchCount )
 {
 #ifdef USE_GPU
-        dim3 grid( batchCount,1,1);
-        dim3 block(16,16,1);
+        int constexpr warpsize = 32;
+        int constexpr nwarps = 8;
+        int constexpr nthreads = nwarps * warpsize;
 
-        kronmult5_batched<double><<< grid, block >>>( n, 
+        kronmult5_batched<double><<< batchCount, nthreads >>>( n, 
            Aarray_, Xarray_, Yarray_, Warray_, batchCount);
 #else
         kronmult5_batched<double>( n, 

@@ -21,10 +21,22 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         // ---------------------------
         // use matlab 1 based indexing
         // ---------------------------
-        int const ix_start = threadIdx.x + 1;
-        int const ix_size = blockDim.x;
-        int const iy_start = threadIdx.y + 1;
-        int const iy_size = blockDim.y;
+        int constexpr warpsize = 32;
+        int const nthreads = blockDim.x;
+        assert( blockDim.y == 1);
+        assert( blockDim.z == 1);
+        assert( MOD( nthreads, warpsize) == 0);
+        // ----------------------------------------------
+        // reorganize threads as nx_threads by ny_threads
+        // ----------------------------------------------
+        int const ny_threads = warpsize;
+        int const nx_threads = nthreads/ny_threads;
+
+        int const ix_start = MOD(threadIdx.x, nx_threads) + 1;
+        int const iy_start = (threadIdx.x/nx_threads) + 1;
+
+        int const ix_size  = nx_threads;
+        int const iy_size  = ny_threads;
 #else
         int const ix_start = 1;
         int const ix_size = 1;

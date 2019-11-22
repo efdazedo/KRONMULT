@@ -114,13 +114,14 @@ T test_kronmult6_batched( int const n, int const batchCount, int const idebug = 
 
 #ifdef USE_GPU
         {
-        dim3 grid(batchCount,1,1);
-        dim3 block(16,16,1);
+        int constexpr warpsize = 32;
+        int constexpr nwarps = 8;
+        int constexpr nthreads = nwarps * warpsize;
 
         // --------------------------------------------
         // note  the input Zarray will be over-written
         // --------------------------------------------
-        kronmult6_batched<T><<< grid, block >>>( n,
+        kronmult6_batched<T><<< batchCount, nthreads >>>( n,
                            Aarray_,
                            Zarray_,
                            Yarray_,

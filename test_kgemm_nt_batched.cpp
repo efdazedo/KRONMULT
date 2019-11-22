@@ -294,15 +294,16 @@ T test_kgemm_nt_batched( int const mm,
 
         {
 
-        dim3 grid(batchCount,1,1);
-        dim3 block(16,16,1);
+        int constexpr warpsize = 32;
+        int constexpr nwarps = 8;
+        int constexpr nthreads = nwarps * warpsize;
 
         cudaError_t istat_sync_start = cudaDeviceSynchronize();
         assert( istat_sync_start == cudaSuccess );
 
         auto time_start = std::chrono::steady_clock::now();
 
-        kgemm_nt_batched<T><<< grid, block >>>( mm,nn,kk, 
+        kgemm_nt_batched<T><<< batchCount, nthreads >>>( mm,nn,kk, 
                           alpha,
                           ddAarray_, dldAarray_,
                           ddBarray_, dldBarray_,

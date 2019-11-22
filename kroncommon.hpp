@@ -6,6 +6,10 @@
 
 #include <cassert>
 
+#ifndef MOD
+#define MOD(i,n)  ((i) % (n))
+#endif
+
 #ifndef ABS
 #define ABS(x) ( ((x) >= 0) ? (x) : (-(x)) )
 #endif

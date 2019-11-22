@@ -16,10 +16,11 @@ void kgemm_nn_batched( int const mm, int const nn, int const kk,
                        int const batchCount)
 {
 #ifdef USE_GPU
-        dim3 grid(batchCount,1,1);
-        dim3 block(16,16,1);
+        int constexpr warpsize = 32;
+        int constexpr nwarps = 8;
+        int constexpr nthreads = nwarps * warpsize;
 
-        kgemm_nn_batched<double><<< grid, block>>>( mm,nn,kk,
+        kgemm_nn_batched<double><<< batchCount, nthreads>>>( mm,nn,kk,
                           alpha,
                           Aarray_, ldAarray_,
                           Barray_, ldBarray_,
