@@ -102,8 +102,8 @@ T test_kronmult6_batched( int const n, int const batchCount, int const idebug = 
             for(int k=1; k <= 6; k++) {
             for(int j=1; j <= n; j++) {
             for(int i=1; i <= n; i++) {
-                T const r1 = (i + (j-1)*n + (k-1)*n*n + ibatch);
-                T const r2 = n*n*n;
+                T const r1 = i + (j-1)*n + (k-1)*n*n + (ibatch-1)*batchCount;
+                T const r2 = n*n*6*batchCount;
                 Aarray(i,j,k,  ibatch) = r1/r2;
             };
             };
