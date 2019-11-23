@@ -2,7 +2,7 @@
 #include <cassert>
 #include <chrono>
 #include <unistd.h>
-
+#include <cmath>
 
 #ifdef USE_GPU
 #include <cuda_runtime.h>
@@ -338,15 +338,22 @@ T test_kgemm_nt_batched( int const mm,
 #endif
 
         auto time_end = std::chrono::steady_clock::now();
-        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_end- time_start).count();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(time_end- time_start).count();
 
-        T elapsed_time_in_sec = elapsed_time * 0.001;
+        T elapsed_time_in_sec = elapsed_time * 0.001 * 0.001;
         T flops = (2.0*mm*nn)*kk*batchCount;
         T gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
 
-        if (idebug >= 2) {
-          std::cout << "elapsed time is " << elapsed_time_in_sec << " seconds " 
-                  << gflops_per_sec << " Gflops/s" << "\n";
+        if (idebug >= 1) {
+          if (elapsed_time_in_sec > 0) {
+            std::cout << " mm = " << mm
+                      << " nn = " << nn
+                      << " kk = " << kk
+                      << " batchCount = " << batchCount
+                      << "\n";
+            std::cout << " elapsed time is " << elapsed_time_in_sec << " seconds " 
+                      << gflops_per_sec << " Gflops/s" << "\n";
+           };
           };
 
 
@@ -387,7 +394,7 @@ T test_kgemm_nt_batched( int const mm,
               };
         }; 
 
-        if (idebug >= 1) {
+        if (idebug >= 2) {
           std::cout << "max_abserr = " << max_abserr << "\n";
         };
 
@@ -467,6 +474,27 @@ int main()
         else {
                 std::cout << "There are " << nerrors << " errors " << "\n";
         };
+
+        // -----------------
+        // performance tests
+        // -----------------
+        if (nerrors == 0) {
+
+           int batchCount = 16;
+           int const n = 8;
+           int const idebug = 1;
+           for(int i=1; i <= 5; i++) {
+                int const mm = std::pow(n,(6-i));
+                int const nn = n;
+                int const kk = n;
+
+                test_kgemm_nt_batched<double>(mm,nn,kk,batchCount,idebug);
+                batchCount *= n;
+                };
+
+        };
+
+
         return(0);
 }
 

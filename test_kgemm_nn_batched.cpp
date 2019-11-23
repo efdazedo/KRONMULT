@@ -336,9 +336,9 @@ T test_kgemm_nn_batched( int const mm,
 #endif
 
         auto time_end = std::chrono::steady_clock::now();
-        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(time_end- time_start).count();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(time_end- time_start).count();
 
-        T elapsed_time_in_sec = elapsed_time * 0.001;
+        T elapsed_time_in_sec = elapsed_time * 0.001 * 0.001;
         T flops = (2.0*mm*nn)*kk*batchCount;
         T gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
 
