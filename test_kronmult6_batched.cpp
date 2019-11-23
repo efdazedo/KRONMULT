@@ -331,7 +331,7 @@ T test_kronmult6_batched( int const n, int const batchCount,
                    };
                    };
 
-                   T const abs_err = ABS( Y_ic - Y(ic) );
+                   T const abs_err = std::abs( Y_ic - Y(ic) );
                    max_abserr = MAX( max_abserr, abs_err );
 
                    if (idebug >= 1) {

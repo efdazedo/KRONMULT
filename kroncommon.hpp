@@ -5,14 +5,14 @@
 
 
 #include <cassert>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
 
 #ifndef MOD
 #define MOD(i,n)  ((i) % (n))
 #endif
 
-#ifndef ABS
-#define ABS(x) ( ((x) >= 0) ? (x) : (-(x)) )
-#endif
 
 #ifndef MAX
 #define MAX(x,y)  ( ((x) > (y)) ? (x) : (y) )
