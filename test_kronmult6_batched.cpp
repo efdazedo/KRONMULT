@@ -423,13 +423,12 @@ int main() {
                // ---------------------
                // try performance test
                // ---------------------
-               int const n = 8;
                int const batchCount = 256;
                bool const do_check = 0;
                int const idebug = 0;
 
-               int const ntimes = 5;
-               for(int it=1; it < ntimes; it++) {
+
+               for(int n=7; n <= 8; n++) {
                 test_kronmult6_batched<double>(n, batchCount, idebug, do_check );
                };
         };

@@ -343,8 +343,15 @@ T test_kgemm_nn_batched( int const mm,
         T gflops_per_sec = flops/(1000.0*1000.0*1000.0) / elapsed_time_in_sec;
 
         if (idebug >= 1) {
-          std::cout << "elapsed time is " << elapsed_time_in_sec << " seconds " 
+          if (elapsed_time_in_sec > 0) {
+            std::cout << " mm = " << mm  
+                      << " nn = " << nn 
+                      << " kk = " << kk 
+                      << " batchCount = " << batchCount 
+                      << "\n";
+            std::cout << " elapsed time is " << elapsed_time_in_sec << " seconds " 
                     << gflops_per_sec << " Gflops/s" << "\n";
+          };
           };
 
 
@@ -386,7 +393,7 @@ T test_kgemm_nn_batched( int const mm,
               };
         }; 
 
-        if (idebug >= 1) {
+        if (idebug >= 2) {
           std::cout << " batchCount = " << batchCount << "\n";
           std::cout << "max_abserr = " << max_abserr << "\n";
         };
@@ -469,5 +476,24 @@ int main()
         else {
                 std::cout << "There are " << nerrors << " errors " << "\n";
         };
+
+        //  -----------------
+        //  performance tests
+        //  -----------------
+        if (nerrors == 0) {
+                const int idebug = 1;
+                const int batchCount = 2*64;
+                for(int n=1; n <= 10; n++) {
+                  int const n2 = n*n;
+                  int const n5 = n2*n2*n;
+                  int const mm = n;
+                  int const nn = n5;
+                  int const kk = n;
+                  test_kgemm_nn_batched<double>(mm,nn,kk,batchCount,idebug);
+                  };
+        };
+
+
+
         return(0);
 }

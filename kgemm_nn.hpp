@@ -127,13 +127,14 @@ void kgemm_nn( int const mm, int const nn, int const kk,
       };
 
 
-        for(int jstart=1; jstart <= nn; jstart += nb_n) {
+        for(int istart=1; istart <= mm;  istart += nb_m) {
+          int const iend = MIN( mm, istart + nb_m-1);
+          int const isize = iend - istart + 1;
+
+          for(int jstart=1; jstart <= nn; jstart += nb_n) {
             int const jend = MIN(nn, jstart + nb_n-1);
             int const jsize = jend  - jstart + 1;
 
-            for(int istart=1; istart <= mm;  istart += nb_m) {
-                int const iend = MIN( mm, istart + nb_m-1);
-                int const isize = iend - istart + 1;
 
                 SYNCTHREADS;
 
