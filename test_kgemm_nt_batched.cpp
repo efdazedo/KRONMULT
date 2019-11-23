@@ -150,14 +150,33 @@ T test_kgemm_nt_batched( int const mm,
         };
 
 
-#define A(i,j)  A_[ indx2f(i,j,ldA) ]
-#define B(i,j)  B_[ indx2f(i,j,ldB) ]
-#define C(i,j)  C_[ indx2f(i,j,ldC) ]
+#define oA(i,j)  A_[ indx2f(i,j,ldA) ]
+#define oB(i,j)  B_[ indx2f(i,j,ldB) ]
+#define oC(i,j)  C_[ indx2f(i,j,ldC) ]
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
              T *A_ = Aarray_[ibatch];
              T *B_ = Barray_[ibatch];
              T *C_ = Carray_[ibatch];
+
+
+
+              auto A = [&](int const i,
+                           int const j) -> T& {
+                      return( A_[ indx2f(i,j,ldA) ] );
+              };
+      
+              auto B = [&](int const i,
+                           int const j) -> T& {
+                      return( B_[ indx2f(i,j,ldB) ] );
+              };
+      
+              auto C = [&](int const i,
+                           int const j) -> T& {
+                      return( C_[ indx2f(i,j,ldC) ] );
+              };
+
+
              for(int j=1; j <= ncolA; j++) {
              for(int i=1; i <= nrowA; i++) {
                 A(i,j) = 1.0 + i + j*nrowA + ibatch;
@@ -374,6 +393,24 @@ T test_kgemm_nt_batched( int const mm,
               T const * const A_ = Aarray_[ibatch];
               T const * const B_ = Barray_[ibatch];
               T const * const C_ = Carray_[ibatch];
+
+
+
+
+              auto A = [&](int const i,
+                           int const j) -> T const & {
+                      return( A_[ indx2f(i,j,ldA) ] );
+              };
+      
+              auto B = [&](int const i,
+                           int const j) -> T const & {
+                      return( B_[ indx2f(i,j,ldB) ] );
+              };
+      
+              auto C = [&](int const i,
+                           int const j) -> T const & {
+                      return( C_[ indx2f(i,j,ldC) ] );
+              };
 
               T const cij0 = 1;
 
