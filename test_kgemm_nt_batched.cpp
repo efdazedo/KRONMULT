@@ -150,9 +150,6 @@ T test_kgemm_nt_batched( int const mm,
         };
 
 
-#define oA(i,j)  A_[ indx2f(i,j,ldA) ]
-#define oB(i,j)  B_[ indx2f(i,j,ldB) ]
-#define oC(i,j)  C_[ indx2f(i,j,ldC) ]
 
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
              T *A_ = Aarray_[ibatch];
