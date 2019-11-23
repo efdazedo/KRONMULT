@@ -194,12 +194,23 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                 // ------------------
                 // store results to C
                 // ------------------
-                for(int j=iy_start; j <= jsize; j += iy_size) {
-                for(int i=ix_start; i <= isize; i += ix_size) {
+                if (beta == 0) {
+                  for(int j=iy_start; j <= jsize; j += iy_size) {
+                  for(int i=ix_start; i <= isize; i += ix_size) {
+                      int const ic = (istart-1) + i;
+                      int const jc = (jstart-1) + j;
+                      C(ic,jc) = alpha*Ctmp(i,j); 
+                  };
+                  };
+                }
+                else {
+                  for(int j=iy_start; j <= jsize; j += iy_size) {
+                  for(int i=ix_start; i <= isize; i += ix_size) {
                       int const ic = (istart-1) + i;
                       int const jc = (jstart-1) + j;
                       C(ic,jc) = alpha*Ctmp(i,j) + beta * C(ic,jc);
-                };
+                  };
+                  };
                 };
 
                 SYNCTHREADS;
