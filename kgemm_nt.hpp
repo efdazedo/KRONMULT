@@ -25,7 +25,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         int const nthreads = blockDim.x; 
         assert( blockDim.y == 1);
         assert( blockDim.z == 1);
-        assert( MOD(nthreads, warpsize) == 0);
+        assert( (nthreads % warpsize) == 0);
 
         // -----------------------------------------
         // reorganize threads as nx_threads by ny_threads
@@ -33,7 +33,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         int const nx_threads = warpsize;
         int const ny_threads = nthreads/nx_threads;
 
-        int const ix_start = MOD( threadIdx.x, nx_threads ) + 1;
+        int const ix_start = ( threadIdx.x % nx_threads ) + 1;
         int const iy_start = (threadIdx.x/nx_threads) + 1;
 
         int const ix_size = nx_threads;
