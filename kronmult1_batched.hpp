@@ -33,35 +33,36 @@ void kronmult1_batched(
         // -------------------------------------------
         int const iz_start = blockIdx.x + 1;
         int const iz_size =  gridDim.x;
+        assert( gridDim.y == 1 );
+        assert( gridDim.z == 1 );
 #else
         int const iz_start = 1;
         int const iz_size = 1;
 #endif
 
-        int const n2 = n*n;
 
 
 
         auto X = [&] (int const i,
                       int const j) -> T& {
-                return(  X_[ indx2f(i,j,n2) ] );
+                return(  X_[ indx2f(i,j,n) ] );
         };
 
         auto Y = [&] (int const i,
                       int const j) -> T& {
-                return(  Y_[ indx2f(i,j,n2) ] );
+                return(  Y_[ indx2f(i,j,n) ] );
         };
 
         auto W = [&] (int const i,
                       int const j) -> T& {
-                return(  W_[ indx2f(i,j,n2) ] );
+                return(  W_[ indx2f(i,j,n) ] );
         };
 
         auto Aarray = [&] (int const i1,
                            int const i2,
                            int const i3,
                            int const i4) -> T const & {
-                return( Aarray_[ indx4f(i1,i2,i3,i4, n,n,2 ) ] );
+                return( Aarray_[ indx4f(i1,i2,i3,i4, n,n,1 ) ] );
         };
 
         for(int ibatch=iz_start; ibatch <= batchCount; ibatch += iz_size) {
@@ -69,7 +70,6 @@ void kronmult1_batched(
                 T* const Yp = &( Y(1,ibatch) );
                 T* const Wp = &( W(1,ibatch) );
                 T const * const A1 = &(Aarray(1,1,1,ibatch));
-                T const * const A2 = &(Aarray(1,1,2,ibatch));
                 int const nvec = 1;
                 kronmult1( n, nvec, A1, Xp, Yp, Wp );
         };
