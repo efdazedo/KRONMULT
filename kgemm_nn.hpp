@@ -17,6 +17,12 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                T const beta,
                T * C_,  int const ldC)
 {
+        auto min = [] (int const x, int const y) {
+                return(  (x < y) ? x : y );
+        };
+        auto max = [] (int const x, int const y) {
+                return(  (x > y) ? x : y );
+        };
 #ifdef USE_GPU
         // ---------------------------
         // use matlab 1 based indexing
@@ -54,9 +60,9 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         int constexpr total_cache = 3 * nb * nb;
         SHARED_MEMORY T cache_memory[total_cache];
 
-        int const nb_m = MIN( nb, mm );
-        int       nb_n = MIN( nb, nn );
-        int const nb_k = MIN( nb, kk );
+        int const nb_m = min( nb, mm );
+        int       nb_n = min( nb, nn );
+        int const nb_k = min( nb, kk );
 
         //  ------------------------------------
         //  commonly  nn is large, but mm, kk are small
@@ -73,9 +79,9 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         // -------------------------
         // make nb_n a multple of nb
         // -------------------------
-        int const multiple_nb = nb_n/nb;
-
-        nb_n = nb * ( (multiple_nb < 1)? 1 : multiple_nb );
+        // int const multiple_nb = nb_n/nb;
+        // nb_n = nb * ( (multiple_nb < 1)? 1 : multiple_nb );
+        nb_n = nb * max( 1, nb_n/nb );
 
         int ifree = 0;
         int const ip_Atmp = ifree; ifree += nb_m * nb_k;
@@ -130,11 +136,11 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 
 
         for(int istart=1; istart <= mm;  istart += nb_m) {
-          int const iend = MIN( mm, istart + nb_m-1);
+          int const iend = min( mm, istart + nb_m-1);
           int const isize = iend - istart + 1;
 
           for(int jstart=1; jstart <= nn; jstart += nb_n) {
-            int const jend = MIN(nn, jstart + nb_n-1);
+            int const jend = min(nn, jstart + nb_n-1);
             int const jsize = jend  - jstart + 1;
 
 
@@ -149,7 +155,7 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                 SYNCTHREADS;
 
                 for(int kstart=1; kstart <= kk; kstart += nb_k) {
-                    int const kend = MIN(kk, kstart+nb_k-1);
+                    int const kend = min(kk, kstart+nb_k-1);
                     int const ksize = kend - kstart + 1;
 
                     // ----------------------------------------------------------

@@ -103,13 +103,7 @@ int indx6f(int const i1,
                ((i6)-1)*((n1)*(n2)*(n3)*(n4)*(n5)) );
 }
 
-#ifndef MAX
-#define MAX(x,y)  ( ((x) > (y)) ? (x) : (y) )
-#endif
 
-#ifndef MIN
-#define MIN(x,y)  (  ((x) < (y)) ? (x) : (y) )
-#endif
 
 
 
