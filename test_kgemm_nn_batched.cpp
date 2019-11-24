@@ -425,7 +425,7 @@ T test_kgemm_nn_batched( int const mm,
                       cij = alpha * cij + beta * cij0;
 
                       T const abserr = std::abs( cij  - C(i,j) );
-                      max_abserr = MAX( max_abserr, abserr );
+                      max_abserr = std::max( max_abserr, abserr );
               };
               };
         }; 

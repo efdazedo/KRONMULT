@@ -73,7 +73,9 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         // -------------------------
         // make nb_n a multple of nb
         // -------------------------
-        nb_n = nb * MAX(1, nb_n/nb);
+        int const multiple_nb = nb_n/nb;
+
+        nb_n = nb * ( (multiple_nb < 1)? 1 : multiple_nb );
 
         int ifree = 0;
         int const ip_Atmp = ifree; ifree += nb_m * nb_k;
