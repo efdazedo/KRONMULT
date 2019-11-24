@@ -79,8 +79,6 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         // -------------------------
         // make nb_n a multple of nb
         // -------------------------
-        // int const multiple_nb = nb_n/nb;
-        // nb_n = nb * ( (multiple_nb < 1)? 1 : multiple_nb );
         nb_n = nb * max( 1, nb_n/nb );
 
         int ifree = 0;
