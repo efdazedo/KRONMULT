@@ -1,2 +1,2 @@
-CXXFLAGS = -UUSE_GPU  -Wall -fopenmp -O
+CXXFLAGS = -UUSE_GPU  -Wall -fopenmp -O3
 CXX=g++
