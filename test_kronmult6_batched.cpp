@@ -145,6 +145,7 @@ T test_kronmult_batched(  int const idim,
         //  initialize the arrays
         //  save a copy of Xarray in Z
         //  ---------------------
+        #pragma omp parallel for
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
         for(int i=1; i <= Xsize; i++) {
               T const r1 = (i + (ibatch-1)*Xsize );
@@ -159,6 +160,7 @@ T test_kronmult_batched(  int const idim,
               Warray(i,ibatch) = 0;
               };
               };
+        #pragma omp parallel for 
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
             for(int k=1; k <= idim; k++) {
             for(int j=1; j <= n; j++) {
