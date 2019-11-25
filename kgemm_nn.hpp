@@ -187,9 +187,11 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                     
                     for(int j=iy_start; j <= jsize; j += iy_size) {
                     for(int i=ix_start; i <= isize; i += ix_size) {
+                            T cij = 0;
                             for(int k=1; k <= ksize; k++) {
-                                Ctmp(i,j) += Atmp(i,k) * Btmp(k,j);
+                                cij += Atmp(i,k) * Btmp(k,j);
                             };
+                            Ctmp(i,j) += cij;
                     };
                     };
 
