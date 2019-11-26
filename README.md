@@ -1,8 +1,10 @@
 Code to perform 6-dimensional batched kronecker product on  GPU and CPU (using OpenMP).
 
-Y(:,k) = kron(A1(:,:,k), ..., A6(:,:,k) ) * X(:,k),   where k=1:batchCount
+Y(:,k) += kron(A1(:,:,k), ..., A6(:,:,k) ) * X(:,k),   where k=1:batchCount
 
 The code assumes  each matrix A1, ..., A6 are all square and same shape of n by n.
+
+Note there can be overlap in the output vectors Y(:,k). Atomic add updates will be performed.
 
 Each vector X(:,k) or Y(:,k) is conceptually  of shape n^6 by 1 but during the computation
 can be reshaped as   n^5 by n or   n^4 by n^2 or n^3 by n^3 or n^2 by n^4 or n by n^5.
