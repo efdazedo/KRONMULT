@@ -216,7 +216,12 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                   for(int i=ix_start; i <= isize; i += ix_size) {
                       int const ic = (istart-1) + i;
                       int const jc = (jstart-1) + j;
-                      C(ic,jc) = alpha*Ctmp(i,j) + beta * C(ic,jc);
+                      if (beta == 1) {
+                         atomicAdd( &(C(ic,jc)), alpha*Ctmp(i,j) );
+                      }
+                      else {
+                        C(ic,jc) = alpha*Ctmp(i,j) + beta * C(ic,jc);
+                      };
                   };
                   };
                 };

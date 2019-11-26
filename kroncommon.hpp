@@ -24,6 +24,31 @@
 #include <cmath>
 #include <algorithm>
 
+#ifndef USE_GPU
+template<typename T>
+static inline
+T atomicAdd( T *, T value) 
+{
+        T oldvalue = (*T);
+        (*T) += value;
+        return( oldvalue );
+}
+
+static inline
+double atomicAdd(double *p, double value)
+{
+        return( atomicAdd<double>( p, value ));
+}
+
+static inline
+float atomicAdd( float *p, float value)
+{
+        return( atomicAdd<float>(p, value ) );
+}
+
+
+#endif
+
 
 static inline
 HOST_FUNCTION DEVICE_FUNCTION
