@@ -25,25 +25,29 @@
 #include <algorithm>
 
 #ifndef USE_GPU
-template<typename T>
+
 static inline
-T atomicAdd( T *, T value) 
+double atomicAdd(double volatile *p, double dvalue)
 {
-        T oldvalue = (*T);
-        (*T) += value;
-        return( oldvalue );
+        double oldvalue = 0;
+        #pragma omp atomic capture
+        {
+        oldvalue = (*p);
+        (*p) += dvalue;
+        }
+        return(oldvalue);
 }
 
 static inline
-double atomicAdd(double *p, double value)
+float atomicAdd( float volatile *p, float dvalue)
 {
-        return( atomicAdd<double>( p, value ));
-}
-
-static inline
-float atomicAdd( float *p, float value)
-{
-        return( atomicAdd<float>(p, value ) );
+        float oldvalue = 0;
+        #pragma omp atomic capture
+        {
+        oldvalue = (*p);
+        (*p) += dvalue;
+        }
+        return(oldvalue);
 }
 
 
