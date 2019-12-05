@@ -12,21 +12,33 @@ KRONSRC=  \
 	kroncommon.hpp \
 	kronmult1_batched.cpp \
 	kronmult1_batched.hpp \
+	kronmult1_pbatched.cpp \
+	kronmult1_pbatched.hpp \
 	kronmult1.hpp \
 	kronmult2_batched.cpp \
 	kronmult2_batched.hpp \
+	kronmult2_pbatched.cpp \
+	kronmult2_pbatched.hpp \
 	kronmult2.hpp \
 	kronmult3_batched.cpp \
 	kronmult3_batched.hpp \
+	kronmult3_pbatched.cpp \
+	kronmult3_pbatched.hpp \
 	kronmult3.hpp \
 	kronmult4_batched.cpp \
 	kronmult4_batched.hpp \
+	kronmult4_pbatched.cpp \
+	kronmult4_pbatched.hpp \
 	kronmult4.hpp \
 	kronmult5_batched.cpp \
 	kronmult5_batched.hpp \
+	kronmult5_pbatched.cpp \
+	kronmult5_pbatched.hpp \
 	kronmult5.hpp \
 	kronmult6_batched.cpp \
 	kronmult6_batched.hpp \
+	kronmult6_pbatched.hpp \
+	kronmult6_pbatched.cpp \
 	kronmult6.hpp 
 
 all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched
