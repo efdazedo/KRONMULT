@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <vector>
 
 #ifndef USE_GPU
 

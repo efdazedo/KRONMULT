@@ -41,7 +41,7 @@ KRONSRC=  \
 	kronmult6_pbatched.cpp \
 	kronmult6.hpp 
 
-all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched
+all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched test_kronmult6_pbatched
 
 
 test_kgemm_nn_batched: test_kgemm_nn_batched.cpp kgemm_nn_batched.hpp kgemm_nn.hpp
@@ -53,8 +53,12 @@ test_kgemm_nt_batched: test_kgemm_nt_batched.cpp kgemm_nt_batched.hpp kgemm_nt.h
 test_kronmult6_batched: test_kronmult6_batched.cpp $(KRONSRC)
 	$(CXX) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp
 
+test_kronmult6_pbatched: test_kronmult6_pbatched.cpp $(KRONSRC)
+	$(CXX) $(CXXFLAGS) -o test_kronmult6_pbatched test_kronmult6_pbatched.cpp
+
+
 clean:
-	touch test_kronmult6_batched 
+	touch test_kronmult6_batched  test_kronmult6_pbatched
 	touch test_kgemm_nn_batched test_kgemm_nt_batched kgemm_nt_batched.o
 	rm test_kgemm_nn_batched test_kgemm_nt_batched *.o
-	rm test_kronmult6_batched 
+	rm test_kronmult6_batched  test_kronmult6_pbatched
