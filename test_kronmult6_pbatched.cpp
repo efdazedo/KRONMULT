@@ -98,11 +98,8 @@ T test_kronmult_pbatched(  int const idim,
         T *Aarray_ = (T *) malloc( sizeof(T)*n*n*idim*batchCount);
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        T *Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
 
-        T *Y2array_ = nullptr;
-        if (use_overlap_in_Y) {
-           Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        };
 
 
         T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
@@ -111,10 +108,8 @@ T test_kronmult_pbatched(  int const idim,
         assert( Aarray_ != nullptr );
         assert( Xarray_ != nullptr );
         assert( Yarray_ != nullptr );
+        assert( Y2array_ != nullptr );
 
-        if (use_overlap_in_Y) {
-           assert( Y2array_ != nullptr );
-        };
 
         assert( Zarray_ != nullptr );
         assert( Warray_ != nullptr );
