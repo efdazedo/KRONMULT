@@ -77,7 +77,8 @@ template<typename T>
 T test_kronmult_pbatched(  int const idim,
                           int const n, int const batchCount, 
                           int const idebug = 0, 
-                          bool const do_check  = true )
+                          bool const do_check  = true,
+                          bool const use_overlap_in_Y = true )
         
 {
 
@@ -97,12 +98,24 @@ T test_kronmult_pbatched(  int const idim,
         T *Aarray_ = (T *) malloc( sizeof(T)*n*n*idim*batchCount);
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+
+        T *Y2array_ = nullptr;
+        if (use_overlap_in_Y) {
+           Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        };
+
+
         T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Warray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
 
         assert( Aarray_ != nullptr );
         assert( Xarray_ != nullptr );
         assert( Yarray_ != nullptr );
+
+        if (use_overlap_in_Y) {
+           assert( Y2array_ != nullptr );
+        };
+
         assert( Zarray_ != nullptr );
         assert( Warray_ != nullptr );
 
@@ -148,6 +161,11 @@ T test_kronmult_pbatched(  int const idim,
         auto Yarray = [&] (int const i, 
                            int const ibatch) -> T& {
                 return( Yarray_[ indx2f(i,ibatch,Xsize) ] );
+        };
+
+        auto Y2array = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( Y2array_[ indx2f(i,ibatch,Xsize) ] );
         };
 
         auto Zarray = [&] (int const i, 
@@ -226,7 +244,14 @@ T test_kronmult_pbatched(  int const idim,
 
         for(int ibatch=1; ibatch <= batchCount;  ibatch++) {
                 pdXarray_[ (ibatch-1) ] = &(dXarray(1,ibatch));
-                pdYarray_[ (ibatch-1) ] = &(dYarray(1,ibatch));
+                
+                if (use_overlap_in_Y) {
+                  pdYarray_[ (ibatch-1) ] = &(dYarray(1,1));
+                }
+                else {
+                  pdYarray_[ (ibatch-1) ] = &(dYarray(1,ibatch));
+                };
+
                 pdZarray_[ (ibatch-1) ] = &(dZarray(1,ibatch));
                 pdWarray_[ (ibatch-1) ] = &(dWarray(1,ibatch));
         };
@@ -403,7 +428,9 @@ T test_kronmult_pbatched(  int const idim,
                 T const * const A5_ = &(Aarray(1,1,5,ibatch));
                 T const * const A6_ = &(Aarray(1,1,6,ibatch));
                 T const * const X_ = &(Xarray(1,ibatch));
-                T       * const Y_ = &(Yarray(1,ibatch));
+
+                T       * const Y_ = (use_overlap_in_Y) ? &(Yarray(1,1)) : 
+                                                          &(Yarray(1,ibatch));
 
                 auto X = [&] (int const i) -> T const & {
                         return( X_[ (i)-1 ]);
@@ -508,19 +535,7 @@ T test_kronmult_pbatched(  int const idim,
                    };
                    };
 
-                   T const abs_err = std::abs( Y_ic - Y(ic) );
-                   max_abserr = std::max( max_abserr, abs_err );
-
-                   if (idebug >= 1) {
-                       T const tol = 1.0/(1000.0 * 1000.0);
-                       if (abs_err > tol ) {
-                             std::cout  << " idim = " << idim
-                                        << " ic = " << ic 
-                                        << " Y_ic = " << Y_ic
-                                        << " Y(ic) =  " << Y(ic)
-                                        << " abs_err = " << abs_err << "\n";
-                       };
-                   };
+                   Y2array(ic,ibatch) = Y_ic;
                                     
 
                 };
@@ -529,7 +544,44 @@ T test_kronmult_pbatched(  int const idim,
                 };
                 };
                 };
-       }; // end for ibatch
+          }; // end for ibatch
+
+                int const max_ic = std::pow( n, idim );
+                for(int ic=1; ic <= max_ic; ic++) { 
+                   T Y_ic = 0;
+                   T Yval = 0;
+                   T abs_err = 0;
+
+                   if (use_overlap_in_Y) {
+                        for(int ibatch=1; ibatch <= batchCount; ibatch++) {
+                                Yval += Y2array(ic,ibatch);
+                        };
+                        abs_err = std::abs( Yval - Yarray(ic,1) );
+                   }
+                   else {
+                       for(int ibatch=1; ibatch <= batchCount; ibatch++) {
+                               Yval = Y2array(ic,ibatch);
+                               Y_ic  = Yarray(ic,ibatch);
+                               abs_err = std::abs(Yval - Y_ic);
+                       };
+                   };
+                   max_abserr = std::max( max_abserr,abs_err);
+
+
+
+                   if (idebug >= 1) {
+                       T const tol = 1.0/(1000.0 * 1000.0);
+                       if (abs_err > tol ) {
+                             std::cout  << " idim = " << idim
+                                        << " ic = " << ic 
+                                        << " Y_ic = " << Y_ic
+                                        << " Yval =  " << Yval
+                                        << " abs_err = " << abs_err << "\n";
+                       };
+                     };
+
+                   }; // end for ic
+
 
       };
 
@@ -548,6 +600,10 @@ T test_kronmult_pbatched(  int const idim,
         free( Aarray_ ); Aarray_ = nullptr;
         free( Xarray_ ); Xarray_ = nullptr;
         free( Yarray_ ); Yarray_ = nullptr;
+        if (use_overlap_in_Y) {
+          free( Y2array_ ); Y2array_ = nullptr;
+        };
+
         free( Zarray_ ); Zarray_ = nullptr;
         free( Warray_ ); Warray_ = nullptr;
 
