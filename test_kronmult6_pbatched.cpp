@@ -4,12 +4,12 @@
 #include <unistd.h>
 
 #include "kroncommon.hpp"
-#include "kronmult6_batched.hpp"
-#include "kronmult5_batched.hpp"
-#include "kronmult4_batched.hpp"
-#include "kronmult3_batched.hpp"
-#include "kronmult2_batched.hpp"
-#include "kronmult1_batched.hpp"
+#include "kronmult6_pbatched.hpp"
+#include "kronmult5_pbatched.hpp"
+#include "kronmult4_pbatched.hpp"
+#include "kronmult3_pbatched.hpp"
+#include "kronmult2_pbatched.hpp"
+#include "kronmult1_pbatched.hpp"
 
 
 #ifdef USE_GPU
@@ -74,7 +74,7 @@ void myfree( void * devPtr ) {
      
 
 template<typename T>
-T test_kronmult_batched(  int const idim,
+T test_kronmult_pbatched(  int const idim,
                           int const n, int const batchCount, 
                           int const idebug = 0, 
                           bool const do_check  = true )
@@ -112,6 +112,27 @@ T test_kronmult_batched(  int const idim,
         T *dYarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
         T *dWarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
 
+        assert( dAarray_ != nullptr );
+        assert( dXarray_ != nullptr );
+        assert( dYarray_ != nullptr );
+        assert( dZarray_ != nullptr );
+        assert( dWarray_ != nullptr );
+
+        T** pdXarray_ = (T**) malloc( sizeof(T*) * batchCount );
+        T** pdYarray_ = (T**) malloc( sizeof(T*) * batchCount );
+        T** pdZarray_ = (T**) malloc( sizeof(T*) * batchCount );
+        T** pdWarray_ = (T**) malloc( sizeof(T*) * batchCount );
+
+        T** dpdXarray_ = (T**) myalloc( sizeof(T*) * batchCount );
+        T** dpdZarray_ = (T**) myalloc( sizeof(T*) * batchCount );
+        T** dpdYarray_ = (T**) myalloc( sizeof(T*) * batchCount );
+        T** dpdWarray_ = (T**) myalloc( sizeof(T*) * batchCount );
+
+        assert( dpdXarray_ != nullptr );
+        assert( dpdYarray_ != nullptr );
+        assert( dpdZarray_ != nullptr );
+        assert( dpdWarray_ != nullptr );
+
         auto Aarray = [&] (int const i, 
                            int const j, 
                            int const k, 
@@ -140,6 +161,25 @@ T test_kronmult_batched(  int const idim,
         };
 
 
+        auto dXarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( dXarray_[ indx2f(i,ibatch,Xsize) ] );
+        };
+
+        auto dYarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( dYarray_[ indx2f(i,ibatch,Xsize) ] );
+        };
+
+        auto dZarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( dZarray_[ indx2f(i,ibatch,Xsize) ] );
+        };
+
+        auto dWarray = [&] (int const i, 
+                           int const ibatch) -> T& {
+                return( dWarray_[ indx2f(i,ibatch,Xsize) ] );
+        };
 
         //  ---------------------
         //  initialize the arrays
@@ -184,6 +224,20 @@ T test_kronmult_batched(  int const idim,
         host2gpu( dZarray_, Zarray_, sizeof(T)*Xsize*batchCount );
         host2gpu( dWarray_, Warray_, sizeof(T)*Xsize*batchCount );
 
+        for(int ibatch=1; ibatch <= batchCount;  ibatch++) {
+                pdXarray_[ (ibatch-1) ] = &(dXarray(1,ibatch));
+                pdYarray_[ (ibatch-1) ] = &(dYarray(1,ibatch));
+                pdZarray_[ (ibatch-1) ] = &(dZarray(1,ibatch));
+                pdWarray_[ (ibatch-1) ] = &(dWarray(1,ibatch));
+        };
+
+        host2gpu( dpdXarray_, pdXarray_, sizeof(T*)*batchCount );
+        host2gpu( dpdYarray_, pdYarray_, sizeof(T*)*batchCount );
+        host2gpu( dpdZarray_, pdZarray_, sizeof(T*)*batchCount );
+        host2gpu( dpdWarray_, pdWarray_, sizeof(T*)*batchCount );
+
+
+
         auto time_start = std::chrono::steady_clock::now();
 #ifdef USE_GPU
         {
@@ -195,46 +249,46 @@ T test_kronmult_batched(  int const idim,
         // note  the input Zarray will be over-written
         // --------------------------------------------
         switch(idim) { 
-        case 1:  kronmult1_batched<T><<< batchCount, nthreads >>>( n,
+        case 1:  kronmult1_pbatched<T><<< batchCount, nthreads >>>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 2:  kronmult2_batched<T><<< batchCount, nthreads >>>( n,
+        case 2:  kronmult2_pbatched<T><<< batchCount, nthreads >>>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 3:  kronmult3_batched<T><<< batchCount, nthreads >>>( n,
+        case 3:  kronmult3_pbatched<T><<< batchCount, nthreads >>>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 4:  kronmult4_batched<T><<< batchCount, nthreads >>>( n,
+        case 4:  kronmult4_pbatched<T><<< batchCount, nthreads >>>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 5:  kronmult5_batched<T><<< batchCount, nthreads >>>( n,
+        case 5:  kronmult5_pbatched<T><<< batchCount, nthreads >>>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 6:  kronmult6_batched<T><<< batchCount, nthreads >>>( n,
+        case 6:  kronmult6_pbatched<T><<< batchCount, nthreads >>>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
          default: 
@@ -255,46 +309,46 @@ T test_kronmult_batched(  int const idim,
         // note  the input Zarray will be over-written
         // --------------------------------------------
         switch(idim) { 
-        case 1:  kronmult1_batched<T>( n,
+        case 1:  kronmult1_pbatched<T>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 2:  kronmult2_batched<T>( n,
+        case 2:  kronmult2_pbatched<T>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 3:  kronmult3_batched<T>( n,
+        case 3:  kronmult3_pbatched<T>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 4:  kronmult4_batched<T>( n,
+        case 4:  kronmult4_pbatched<T>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 5:  kronmult5_batched<T>( n,
+        case 5:  kronmult5_pbatched<T>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
-        case 6:  kronmult6_batched<T>( n,
+        case 6:  kronmult6_pbatched<T>( n,
                            dAarray_,
-                           dZarray_,
-                           dYarray_,
-                           dWarray_,
+                           dpdZarray_,
+                           dpdYarray_,
+                           dpdWarray_,
                            batchCount );
             break;
          default: 
@@ -522,7 +576,7 @@ int main() {
                 int const n = n_table[in_table];
                 int const batchCount = batch_table[ibatch_table];
 
-                double const max_abserr =  test_kronmult_batched<double>( idim, n, batchCount, idebug );
+                double const max_abserr =  test_kronmult_pbatched<double>( idim, n, batchCount, idebug );
                 double const tol = 1.0/(1000.0 * 1000.0);
                 bool const isok = (max_abserr <= tol);
                 if (!isok) {
@@ -558,7 +612,7 @@ int main() {
 
 
                for(int n=7; n <= 8; n++) {
-                test_kronmult_batched<double>(idim,n, batchCount, idebug, do_check );
+                test_kronmult_pbatched<double>(idim,n, batchCount, idebug, do_check );
                };
         };
 

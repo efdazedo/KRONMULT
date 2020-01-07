@@ -386,6 +386,7 @@ T test_kgemm_nt_batched( int const mm,
 
 
         T max_abserr = 0;
+        #pragma omp parallel for reduction(max:max_abserr)
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
               T const * const A_ = Aarray_[ibatch];
               T const * const B_ = Barray_[ibatch];

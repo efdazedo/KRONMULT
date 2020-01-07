@@ -23,6 +23,36 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <vector>
+
+#ifndef USE_GPU
+
+static inline
+double atomicAdd(double volatile *p, double dvalue)
+{
+        double oldvalue = 0;
+        #pragma omp atomic capture
+        {
+        oldvalue = (*p);
+        (*p) += dvalue;
+        }
+        return(oldvalue);
+}
+
+static inline
+float atomicAdd( float volatile *p, float dvalue)
+{
+        float oldvalue = 0;
+        #pragma omp atomic capture
+        {
+        oldvalue = (*p);
+        (*p) += dvalue;
+        }
+        return(oldvalue);
+}
+
+
+#endif
 
 
 static inline
