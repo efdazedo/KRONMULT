@@ -405,11 +405,11 @@ T test_kronmult_batched(  int const idim,
                 int const max_j6 = (idim >= 6) ? n : 1;
 
                 #pragma omp parallel for collapse(6)  reduction(max:max_abserr)
-                for(int i1=1; i1 <= max_i1; i1++) {
-                for(int i2=1; i2 <= max_i2; i2++) {
-                for(int i3=1; i3 <= max_i3; i3++) {
-                for(int i4=1; i4 <= max_i4; i4++) {
-                for(int i5=1; i5 <= max_i5; i5++) {
+                for(int i1=1; i1 <= max_i1; i1++) 
+                for(int i2=1; i2 <= max_i2; i2++) 
+                for(int i3=1; i3 <= max_i3; i3++) 
+                for(int i4=1; i4 <= max_i4; i4++) 
+                for(int i5=1; i5 <= max_i5; i5++) 
                 for(int i6=1; i6 <= max_i6; i6++) {
 
                    int const ic = 1+indx6f( i6,i5,i4,i3,i2,i1,
@@ -469,11 +469,11 @@ T test_kronmult_batched(  int const idim,
                    };
                                     
 
-                };
-                };
-                };
-                };
-                };
+                
+                
+                
+                
+                
                 };
        }; // end for ibatch
 
