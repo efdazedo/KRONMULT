@@ -424,15 +424,8 @@ T test_kronmult_pbatched(  int const idim,
                 T const * const A6_ = &(Aarray(1,1,6,ibatch));
                 T const * const X_ = &(Xarray(1,ibatch));
 
-                T       * const Y_ = (use_overlap_in_Y) ? &(Yarray(1,1)) : 
-                                                          &(Yarray(1,ibatch));
-
                 auto X = [&] (int const i) -> T const & {
                         return( X_[ (i)-1 ]);
-                };
-
-                auto Y = [&] (int const i) -> T& {
-                        return( Y_[ (i)-1 ]);
                 };
 
                 auto A1 = [&](int const i,
