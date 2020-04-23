@@ -36,12 +36,14 @@ by data movement, especially when n is small.
 -----------------
 
 To compile the code for CPU
-(1) cp make.inc.cpu make.inc
-(2) make clean; make all
+(1) mkdir build && cd build
+(2) cmake ../
+(3) make
 
 To compile the code for Nvidia GPU
-(1) cp make.inc.gpu make.inc
-(2) make clean; make all
+(1) mkdir build && cd build
+(2) cmake ../ -DUSE_GPU=1
+(3) make
 
 To run the tester for kgemm_nn_batched, perform
 ./test_kgemm_nn_batched
