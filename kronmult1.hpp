@@ -25,7 +25,7 @@ void kronmult1( int const n,
 {
 
     // used to suppress warnings in unused variables
-    auto const ignore = [](auto ignored) { (void)ignored; };
+    auto const ignore = [](T* ignored) { (void)ignored; };
     ignore(W_);
 
     int const mm = n;

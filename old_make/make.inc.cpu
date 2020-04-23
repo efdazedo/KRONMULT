@@ -1,0 +1,1 @@
+CXXFLAGS = -UUSE_GPU  -Wall -fopenmp -O3
