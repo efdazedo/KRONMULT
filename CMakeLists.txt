@@ -9,9 +9,17 @@
     
     add_compile_options ("-O3" "-g")
     
-    find_package(OpenMP OPTIONAL)
+    find_package(OpenMP)
+
+    if(OpenMP_CXX_FOUND)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    else ()
+	message("-- WARNING - building kronmult without openMP support ---")
+    endif ()
 
     include(CTest)
+    
     set(KRONSRC 
 	kgemm_nn_batched.cpp 
 	kgemm_nn_batched.hpp 
@@ -53,7 +61,7 @@
 	kronmult6_pbatched.cpp 
 	kronmult6.hpp 
       )
-    
+   
     if(USE_GPU)
 	set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -arch sm_60 --ptxas-options=-O3")
 	set_source_files_properties( ${KRONSRC} PROPERTIES LANGUAGE CUDA )
@@ -63,7 +71,6 @@
     endif()
 
     target_compile_features(kron PUBLIC cxx_std_11)
-    
     
     if (USE_GPU)
         set_target_properties( kron
