@@ -24,6 +24,10 @@ void kronmult1( int const n,
 // -----------------
 {
 
+    // used to suppress warnings in unused variables
+    auto const ignore = [](auto ignored) { (void)ignored; };
+    ignore(W_);
+
     int const mm = n;
     int const nn = nvec;
     int const kk = n;
