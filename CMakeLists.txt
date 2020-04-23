@@ -2,15 +2,17 @@
     
     if (USE_GPU)
         project(kronmult LANGUAGES CXX CUDA) 
+        add_compile_definitions(USE_GPU)
     else ()
         project(kronmult LANGUAGES CXX) 
     endif ()
     
-    find_package(OpenMP REQUIRED)
+    add_compile_options ("-O3" "-g")
+    
+    find_package(OpenMP OPTIONAL)
 
     include(CTest)
-     
-    add_library(kron STATIC
+    set(KRONSRC 
 	kgemm_nn_batched.cpp 
 	kgemm_nn_batched.hpp 
 	kgemm_nn.cpp 
@@ -51,7 +53,15 @@
 	kronmult6_pbatched.cpp 
 	kronmult6.hpp 
       )
-     
+    
+    if(USE_GPU)
+	set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -arch sm_60 --ptxas-options=-O3")
+	set_source_files_properties( ${KRONSRC} PROPERTIES LANGUAGE CUDA )
+	add_library(kron STATIC ${KRONSRC})
+    else ()
+        add_library(kron STATIC ${KRONSRC})
+    endif()
+
     target_compile_features(kron PUBLIC cxx_std_11)
     
     
@@ -61,6 +71,18 @@
     endif ()
 
    
+    set(TESTSRC 
+	test_kronmult6_batched.cpp 
+	test_kronmult6_pbatched.cpp 
+	test_kgemm_nn_batched.cpp 
+	test_kgemm_nt_batched.cpp 
+      )
+
+    if(USE_GPU)
+        set_source_files_properties( ${TESTSRC} PROPERTIES LANGUAGE CUDA )
+    endif ()
+
+
     add_executable(kgemm_nn_test test_kgemm_nn_batched.cpp) 
     add_executable(kgemm_nt_test test_kgemm_nt_batched.cpp)
     add_executable(test_kronmult6_batched test_kronmult6_batched.cpp)
