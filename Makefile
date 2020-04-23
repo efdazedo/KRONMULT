@@ -1,10 +1,5 @@
 include make.inc
 
-CXXFLAGS += -fPIC
-LDFLAGS = -shared
-TARGET_LIB = libkron.so
-LIB_DIR = ./lib
-
 KRONSRC=  \
 	kgemm_nn_batched.cpp \
 	kgemm_nn_batched.hpp \
@@ -46,7 +41,7 @@ KRONSRC=  \
 	kronmult6_pbatched.cpp \
 	kronmult6.hpp 
 
-all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched test_kronmult6_pbatched $(LIB_DIR)/$(TARGET_LIB)
+all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched test_kronmult6_pbatched
 
 
 test_kgemm_nn_batched: test_kgemm_nn_batched.cpp kgemm_nn_batched.hpp kgemm_nn.hpp
@@ -61,10 +56,6 @@ test_kronmult6_batched: test_kronmult6_batched.cpp $(KRONSRC)
 test_kronmult6_pbatched: test_kronmult6_pbatched.cpp $(KRONSRC)
 	$(CXX) $(CXXFLAGS) -o test_kronmult6_pbatched test_kronmult6_pbatched.cpp
 
-LIB_OBJS=$(KRONSRC:.cpp=.o)
-$(LIB_DIR)/$(TARGET_LIB): $(LIB_OBJS)
-	$(CXX) $(CXXFLAGS) $(LIB_OBJS) -o $@ $(LDFLAGS)
-$(shell   mkdir -p $(LIB_DIR))
 
 clean:
 	touch test_kronmult6_batched  test_kronmult6_pbatched

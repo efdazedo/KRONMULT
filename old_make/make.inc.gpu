@@ -1,2 +1,0 @@
-CXXFLAGS = -DUSE_GPU  -O3
-CXX=nvcc -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_60
