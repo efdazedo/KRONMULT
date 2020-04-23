@@ -1,2 +1,3 @@
 CXXFLAGS = -UUSE_GPU  -qsmp=omp -qoffload -g 
 CXX=xlc++_r -std=c++11
+LIBS=-lcuda

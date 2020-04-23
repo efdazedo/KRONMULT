@@ -1,2 +1,3 @@
 CXXFLAGS = -UUSE_GPU  -Wall -fopenmp -O3
 CXX=g++
+LIBS=-lblas

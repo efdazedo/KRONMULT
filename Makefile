@@ -45,10 +45,10 @@ all: test_kgemm_nn_batched test_kgemm_nt_batched test_kronmult6_batched test_kro
 
 
 test_kgemm_nn_batched: test_kgemm_nn_batched.cpp kgemm_nn_batched.hpp kgemm_nn.hpp
-	$(CXX) $(CXXFLAGS) -o test_kgemm_nn_batched test_kgemm_nn_batched.cpp -lcuda
+	$(CXX) $(CXXFLAGS) -o test_kgemm_nn_batched test_kgemm_nn_batched.cpp $(LIBS) 
 
 test_kgemm_nt_batched: test_kgemm_nt_batched.cpp kgemm_nt_batched.hpp kgemm_nt.hpp
-	$(CXX) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp -lcuda
+	$(CXX) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp $(LIBS) 
 
 test_kronmult6_batched: test_kronmult6_batched.cpp $(KRONSRC)
 	$(CXX) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp
