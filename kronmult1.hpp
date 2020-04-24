@@ -17,7 +17,8 @@ void kronmult1( int const n,
                 T   const A1_[],
                 T   X_[],
                 T   Y_[],
-                T   W_[] )
+                T   W_[],
+	        int const lda_in = 0 )
 // -----------------
 // note A1 is n by n
 //      X is (n by nvec)
@@ -28,13 +29,14 @@ void kronmult1( int const n,
     auto const ignore = [](T* ignored) { (void)ignored; };
     ignore(W_);
 
+    int const lda = (lda_in == 0) ? n : lda_in;
     int const mm = n;
     int const nn = nvec;
     int const kk = n;
     T const * const Ap = &(A1_[0]);
     T const * const Bp = &(X_[0]);
     T       * const Cp = &(Y_[0]);
-    int const ld1 = n;
+    int const ld1 = lda;
     int const ld2 = n;
     int const ld3 = n;
     T const alpha = 1;

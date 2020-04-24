@@ -15,13 +15,14 @@ template<typename T>
 GLOBAL_FUNCTION
 void kronmult3_xbatched(
                        int const n,
-                       T const Aarray_[],
+                       T const * const Aarray_[],
+		       int const lda,
                        T* pX_[],
                        T* pY_[],
                        T* pW_[],
                        int const batchCount)
 //
-// conceptual shape of Aarray is  (n,n,6,batchCount)
+// conceptual shape of Aarray is  (ndim,batchCount)
 //
 // pX_[] is array of pointers to X[], each of size n^3
 // pY_[] is array of pointers to Y[], each of size n^3
@@ -46,12 +47,12 @@ void kronmult3_xbatched(
         int const iz_size = 1;
 #endif
 
+	int const ndim = 3;
 
         auto Aarray = [&] (int const i1,
-                           int const i2,
-                           int const i3,
-                           int const i4) -> T const & {
-                return( Aarray_[ indx4f(i1,i2,i3,i4, n,n,3 ) ] );
+                           int const i2
+                           ) -> T const * const   {
+                return( Aarray_[ indx2f(i1,i2,ndim ) ] );
         };
 
 
@@ -64,11 +65,11 @@ void kronmult3_xbatched(
                 T* const Yp =  pY_[ (ibatch-1) ];
                 T* const Wp =  pW_[ (ibatch-1) ];
 
-                T const * const A1 = &(Aarray(1,1,1,ibatch));
-                T const * const A2 = &(Aarray(1,1,2,ibatch));
-                T const * const A3 = &(Aarray(1,1,3,ibatch));
+                T const * const A1 = (Aarray(1,ibatch));
+                T const * const A2 = (Aarray(2,ibatch));
+                T const * const A3 = (Aarray(3,ibatch));
                 int const nvec = 1;
-                kronmult3( n, nvec, A1,A2,A3,   Xp, Yp, Wp );
+                kronmult3( n, nvec, A1,A2,A3,   Xp, Yp, Wp, lda );
         };
 
 }
