@@ -152,6 +152,13 @@ T test_kronmult_xbatched(  int const idim,
         assert( dpdZarray_ != nullptr );
         assert( dpdWarray_ != nullptr );
 
+        auto dAarray = [&] (int const i, 
+                           int const j, 
+                           int const k, 
+                           int const ibatch ) -> T& {
+                return(  dAarray_[ indx4f(i,j,k,ibatch, lda,n,idim) ] );
+        };
+
         auto Aarray = [&] (int const i, 
                            int const j, 
                            int const k, 
@@ -246,7 +253,7 @@ T test_kronmult_xbatched(  int const idim,
         #pragma omp parallel for
 	for(int ibatch=1; ibatch <= batchCount; ibatch++) {
 	   for(int k=1; k <= idim; k++) {
-		Aparray(k,ibatch) = &(Aarray(1,1,k,ibatch));
+		Aparray(k,ibatch) = &(dAarray(1,1,k,ibatch));
 	   };
 	};
 
