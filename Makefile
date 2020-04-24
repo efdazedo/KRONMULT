@@ -61,13 +61,13 @@ test_kgemm_nt_batched: test_kgemm_nt_batched.cpp kgemm_nt_batched.hpp kgemm_nt.h
 	$(CXX) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp $(LIBS) 
 
 test_kronmult6_batched: test_kronmult6_batched.cpp $(KRONSRC)
-	$(CXX) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp
+	$(CXX) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp $(LIBS)
 
 test_kronmult6_pbatched: test_kronmult6_pbatched.cpp $(KRONSRC)
-	$(CXX) $(CXXFLAGS) -o test_kronmult6_pbatched test_kronmult6_pbatched.cpp
+	$(CXX) $(CXXFLAGS) -o test_kronmult6_pbatched test_kronmult6_pbatched.cpp $(LIBS)
 
 test_kronmult6_xbatched: test_kronmult6_xbatched.cpp $(KRONSRC)
-	$(CXX) $(CXXFLAGS) -o test_kronmult6_xbatched test_kronmult6_xbatched.cpp
+	$(CXX) $(CXXFLAGS) -o test_kronmult6_xbatched test_kronmult6_xbatched.cpp $(LIBS)
 
 
 clean:
