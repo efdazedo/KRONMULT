@@ -82,7 +82,7 @@ T test_kronmult_xbatched(  int const idim,
         
 {
 
-	int const lda = n + 3;
+	int const lda = n + 3 ;
 
 
 
@@ -97,8 +97,11 @@ T test_kronmult_xbatched(  int const idim,
 
         int const Xsize = std::pow(n,idim);
 
-        T *Aarray_   = (T *)  malloc( sizeof(T)*lda*n*idim*batchCount);
-        T **Aparray_ = (T **) malloc( sizeof(T*)*idim*batchCount);
+	size_t const Aarray_nbytes = sizeof(T)*lda*n*idim*batchCount;
+	size_t const Aparray_nbytes = sizeof(T*) * idim * batchCount;
+
+        T *Aarray_   = (T *)  malloc( Aarray_nbytes );
+        T **Aparray_ = (T **) malloc( Aparray_nbytes );
 
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
@@ -118,8 +121,8 @@ T test_kronmult_xbatched(  int const idim,
         assert( Zarray_ != nullptr );
         assert( Warray_ != nullptr );
 
-        T *dAarray_   = (T *)  myalloc( sizeof(T)*lda*n*idim*batchCount);
-	T **dAparray_ = (T **) myalloc( sizeof(T*) * idim * batchCount );
+        T *dAarray_   = (T *)  myalloc( Aarray_nbytes );
+	T **dAparray_ = (T **) myalloc( Aparray_nbytes );
 
         T *dXarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
         T *dZarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
@@ -252,8 +255,8 @@ T test_kronmult_xbatched(  int const idim,
         // copy from host to GPU
         // interface is host2gpu( dest, src, nbytes )
         // ---------------------
-        host2gpu( dAarray_,  Aarray_,  sizeof(T)*lda*n*idim*batchCount );
-        host2gpu( dAparray_, Aparray_, sizeof(T*)*idim*batchCount );
+        host2gpu( dAarray_,  Aarray_,  Aarray_nbytes );
+        host2gpu( dAparray_, Aparray_, Aparray_nbytes );
 
         host2gpu( dXarray_, Xarray_, sizeof(T)*Xsize*batchCount );
         host2gpu( dYarray_, Yarray_, sizeof(T)*Xsize*batchCount );
@@ -453,32 +456,32 @@ T test_kronmult_xbatched(  int const idim,
 
                 auto A1 = [&](int const i,
                               int const j) -> T const & {
-                        return( A1_[ indx2f(i,j,n) ] );
+                        return( A1_[ indx2f(i,j,lda) ] );
                 };
 
                 auto A2 = [&](int const i,
                               int const j) -> T const & {
-                        return( A2_[ indx2f(i,j,n) ] );
+                        return( A2_[ indx2f(i,j,lda) ] );
                 };
 
                 auto A3 = [&](int const i,
                               int const j) -> T const & {
-                        return( A3_[ indx2f(i,j,n) ] );
+                        return( A3_[ indx2f(i,j,lda) ] );
                 };
 
                 auto A4 = [&](int const i,
                               int const j) -> T const & {
-                        return( A4_[ indx2f(i,j,n) ] );
+                        return( A4_[ indx2f(i,j,lda) ] );
                 };
 
                 auto A5 = [&](int const i,
                               int const j) -> T const & {
-                        return( A5_[ indx2f(i,j,n) ] );
+                        return( A5_[ indx2f(i,j,lda) ] );
                 };
 
                 auto A6 = [&](int const i,
                               int const j) -> T const & {
-                        return( A6_[ indx2f(i,j,n) ] );
+                        return( A6_[ indx2f(i,j,lda) ] );
                 };
 
 
