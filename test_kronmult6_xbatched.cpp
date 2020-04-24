@@ -82,11 +82,13 @@ T test_kronmult_xbatched(  int const idim,
         
 {
 
+	int const lda = n + 3;
 
 
 
         // -------------------------
-        // Aarray is (n,n,idim,batchCount)
+        // Aarray is (lda,n,idim,batchCount)
+	// Aparray is (idim,batchCount)
         // Xarray is (n^idim by batchCount)
         // Yarray is (n^idim by batchCount)
         // Zarray is (n^idim by batchCount)
@@ -95,17 +97,19 @@ T test_kronmult_xbatched(  int const idim,
 
         int const Xsize = std::pow(n,idim);
 
-        T *Aarray_ = (T *) malloc( sizeof(T)*n*n*idim*batchCount);
+        T *Aarray_   = (T *)  malloc( sizeof(T)*lda*n*idim*batchCount);
+        T **Aparray_ = (T **) malloc( sizeof(T*)*idim*batchCount);
+
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-
-
 
         T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Warray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
 
         assert( Aarray_ != nullptr );
+        assert( Aparray_ != nullptr );
+
         assert( Xarray_ != nullptr );
         assert( Yarray_ != nullptr );
         assert( Y2array_ != nullptr );
@@ -114,13 +118,17 @@ T test_kronmult_xbatched(  int const idim,
         assert( Zarray_ != nullptr );
         assert( Warray_ != nullptr );
 
-        T *dAarray_ = (T *) myalloc( sizeof(T)*n*n*idim*batchCount);
+        T *dAarray_   = (T *)  myalloc( sizeof(T)*lda*n*idim*batchCount);
+	T **dAparray_ = (T **) myalloc( sizeof(T*) * idim * batchCount );
+
         T *dXarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
         T *dZarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
         T *dYarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
         T *dWarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
 
-        assert( dAarray_ != nullptr );
+        assert( dAarray_  != nullptr );
+        assert( dAparray_ != nullptr );
+
         assert( dXarray_ != nullptr );
         assert( dYarray_ != nullptr );
         assert( dZarray_ != nullptr );
@@ -145,8 +153,13 @@ T test_kronmult_xbatched(  int const idim,
                            int const j, 
                            int const k, 
                            int const ibatch ) -> T& {
-                return(  Aarray_[ indx4f(i,j,k,ibatch, n,n,idim) ] );
+                return(  Aarray_[ indx4f(i,j,k,ibatch, lda,n,idim) ] );
         };
+
+	auto Aparray = [&] (int const i,
+			    int const ibatch ) -> T* & {
+		return( Aparray_[ indx2f(i,ibatch,idim) ] );
+	};
 
         auto Xarray = [&] (int const i, 
                            int const ibatch) -> T& {
@@ -194,6 +207,7 @@ T test_kronmult_xbatched(  int const idim,
                 return( dWarray_[ indx2f(i,ibatch,Xsize) ] );
         };
 
+
         //  ---------------------
         //  initialize the arrays
         //  save a copy of Xarray in Z
@@ -226,12 +240,21 @@ T test_kronmult_xbatched(  int const idim,
             };
         };
 
+        #pragma omp parallel for
+	for(int ibatch=1; ibatch <= batchCount; ibatch++) {
+	   for(int k=1; k <= idim; k++) {
+		Aparray(k,ibatch) = &(Aarray(1,1,k,ibatch));
+	   };
+	};
+
 
         // ---------------------
         // copy from host to GPU
         // interface is host2gpu( dest, src, nbytes )
         // ---------------------
-        host2gpu( dAarray_, Aarray_, sizeof(T)*n*n*idim*batchCount );
+        host2gpu( dAarray_,  Aarray_,  sizeof(T)*lda*n*idim*batchCount );
+        host2gpu( dAparray_, Aparray_, sizeof(T*)*idim*batchCount );
+
         host2gpu( dXarray_, Xarray_, sizeof(T)*Xsize*batchCount );
         host2gpu( dYarray_, Yarray_, sizeof(T)*Xsize*batchCount );
         host2gpu( dZarray_, Zarray_, sizeof(T)*Xsize*batchCount );
@@ -270,42 +293,42 @@ T test_kronmult_xbatched(  int const idim,
         // --------------------------------------------
         switch(idim) { 
         case 1:  kronmult1_xbatched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 2:  kronmult2_xbatched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 3:  kronmult3_xbatched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 4:  kronmult4_xbatched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 5:  kronmult5_xbatched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 6:  kronmult6_xbatched<T><<< batchCount, nthreads >>>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
@@ -330,42 +353,42 @@ T test_kronmult_xbatched(  int const idim,
         // --------------------------------------------
         switch(idim) { 
         case 1:  kronmult1_xbatched<T>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 2:  kronmult2_xbatched<T>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 3:  kronmult3_xbatched<T>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 4:  kronmult4_xbatched<T>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 5:  kronmult5_xbatched<T>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
                            batchCount );
             break;
         case 6:  kronmult6_xbatched<T>( n,
-                           dAarray_,
+                           dAparray_, lda,
                            dpdZarray_,
                            dpdYarray_,
                            dpdWarray_,
@@ -375,7 +398,7 @@ T test_kronmult_xbatched(  int const idim,
             assert( false );
         };
 
-        }
+     }
 
 
 
@@ -580,12 +603,16 @@ T test_kronmult_xbatched(  int const idim,
         // -------
 
         myfree( dAarray_ ); dAarray_ = nullptr;
+        myfree( dAparray_ ); dAparray_ = nullptr;
+
         myfree( dXarray_ ); dXarray_ = nullptr;
         myfree( dYarray_ ); dYarray_ = nullptr;
         myfree( dZarray_ ); dZarray_ = nullptr;
         myfree( dWarray_ ); dWarray_ = nullptr;
 
         free( Aarray_ ); Aarray_ = nullptr;
+        free( Aparray_ ); Aparray_ = nullptr;
+
         free( Xarray_ ); Xarray_ = nullptr;
         free( Yarray_ ); Yarray_ = nullptr;
         if (use_overlap_in_Y) {
@@ -608,7 +635,7 @@ int main() {
         int batch_table[] = {1,16,128};
         int const size_batch_table = sizeof(batch_table)/sizeof(batch_table[0]);
 
-        int n_table[] = {1, 2,3, 4 };
+        int n_table[] = {1, 2, 3, 4 };
         int const size_n_table = sizeof(n_table)/sizeof(n_table[0]);
 
 
