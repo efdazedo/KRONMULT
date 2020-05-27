@@ -1,5 +1,5 @@
-#ifndef KRONMULT2_PBATCHED_HPP
-#define KRONMULT2_PBATCHED_HPP 1
+#ifndef KRONMULT2_XBATCHED_HPP
+#define KRONMULT2_XBATCHED_HPP 1
 
 #include "kroncommon.hpp"
 
