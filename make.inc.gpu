@@ -1,2 +1,3 @@
-CXXFLAGS = -DUSE_GPU  -O3
+CXXFLAGS = -DUSE_GPU  -g -std=c++11
 CXX=nvcc -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_60
+LIBS=-lcuda

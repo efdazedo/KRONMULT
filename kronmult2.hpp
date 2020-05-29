@@ -20,13 +20,15 @@ void kronmult2( int const n,
                 T   const A2_[],
                 T   X_[],
                 T   Y_[],
-                T   W_[] )
+                T   W_[],
+		int const lda_in = 0
+	        )
 // -----------------
 // note A1 is n by n
 //      X is (n^3 by nvec)
 // -----------------
 {
-
+    int const lda = (lda_in == 0) ? n : lda_in;
     int const n2 = n*n;
 
     int const ldX = n2;
@@ -76,7 +78,7 @@ void kronmult2( int const n,
             T       * const  Cp = &(Wi(1,1));
 
             int const ld1 = ldXi;
-            int const ld2 = n;
+            int const ld2 = lda;
             int const ld3 = ldWi;
 
             kgemm_nt( mm,nn,kk, 
@@ -93,7 +95,7 @@ void kronmult2( int const n,
     {
     kronmult1( n, next_nvec, 
                A2_, 
-               W_,  Y_,   X_ );
+               W_,  Y_,   X_, lda );
     }
 
 }
