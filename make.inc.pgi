@@ -1,0 +1,3 @@
+CXXFLAGS = -UUSE_GPU  -mp -Minfo=all  -g -Mbounds
+CXX=pgc++ -std=c++11 
+LIBS=-lblas -llapack -cudalibs
