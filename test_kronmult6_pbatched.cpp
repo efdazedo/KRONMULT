@@ -262,8 +262,8 @@ T test_kronmult_pbatched(  int const idim,
 #ifdef USE_GPU
         {
         int constexpr warpsize = 32;
-        int constexpr nwarps = 8;
-        int constexpr nthreads = nwarps * warpsize;
+        int const nwarps = min(n,32);
+        int const nthreads = nwarps * warpsize;
 
         // --------------------------------------------
         // note  the input Zarray will be over-written
@@ -398,7 +398,7 @@ T test_kronmult_pbatched(  int const idim,
           double const flops = 12.0*(std::pow(n,(idim+1))) * batchCount;
           double const gflops = flops/giga;
           double const gflops_per_sec = gflops  /elapsed_time_sec;
-          if (flops > giga) {
+          if (flops > 0.01 * giga) {
                   std::cout << " idim = " << idim
                             << " n = " << n 
                             << " batchCount = " << batchCount
@@ -655,7 +655,7 @@ int main() {
                int const idim = 6;
 
 
-               for(int n=7; n <= 8; n++) {
+               for(int n=4; n <= 8; n++) {
                 test_kronmult_pbatched<double>(idim,n, batchCount, idebug, do_check );
                };
         };

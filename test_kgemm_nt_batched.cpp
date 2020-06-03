@@ -323,8 +323,8 @@ T test_kgemm_nt_batched( int const mm,
         {
 
         int constexpr warpsize = 32;
-        int constexpr nwarps = 8;
-        int constexpr nthreads = nwarps * warpsize;
+        int const nwarps = min( min(32,mm), min(nn,kk));
+        int const nthreads = nwarps * warpsize;
 
         cudaError_t istat_sync_start = cudaDeviceSynchronize();
         assert( istat_sync_start == cudaSuccess );
