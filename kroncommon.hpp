@@ -54,7 +54,6 @@ float atomicAdd( float volatile *p, float dvalue)
 
 #endif
 
-
 static inline
 HOST_FUNCTION DEVICE_FUNCTION
 int indx2f( int const i, 
