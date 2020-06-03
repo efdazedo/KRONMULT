@@ -40,7 +40,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         // reorganize threads as nx_threads by ny_threads
         // -----------------------------------------
         int const nx_threads = warpsize;
-        int const ny_threads = nthreads/nx_threads;
+        int const ny_threads = max(1,nthreads/nx_threads);
         assert( (nthreads % warpsize) == 0);
 
         int const ix_start = ( threadIdx.x % nx_threads ) + 1;
@@ -48,12 +48,19 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
         int const ix_size = nx_threads;
         int const iy_size = ny_threads;
+
+	int const ij_start = threadIdx.x + 1;
+	int const ij_size = nthreads;
+
 #else
 
         int const ix_start = 1;
         int const ix_size = 1;
         int const iy_start = 1;
         int const iy_size = 1;
+
+	int const ij_start = 1;
+	int const ij_size = 1;
 #endif
 
         assert( ix_start >= 1);
@@ -105,12 +112,33 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                     // ---------------------------
                     // perform matrix calculations
                     // ---------------------------
-		    for(int j=iy_start; j <= jsize; j += iy_size) 
-	            for(int i=ix_start; i <= isize; i += ix_size) {
+		    // for(int j=iy_start; j <= jsize; j += iy_size) 
+	            // for(int i=ix_start; i <= isize; i += ix_size) {
+
+		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
+			    int const  i = (ij0 % isize) + 1;
+			    int const  j = (ij0 - (i-1))/isize + 1;
 			    T cij = 0;
-			    for(int k=1; k <= kk; k++) {
+			    bool constexpr use_pointer = true;
+			    if (use_pointer) {
+				    int k = 1;
+				    int ia = (istart-1) + i;
+				    int ib = (jstart-1) + j;
+				    T const * Ap = &(A(ia,k));
+                                    int64_t const inc_A = &(A(ia,k+1)) - Ap;
+				    T const * Bp = &(B(ib,k));
+				    int64_t const inc_B = &(B(ib,k+1)) - Bp;
+				    for(k=0; k < kk; k++) {
+					    cij += (*Ap) * (*Bp);
+					    Ap += inc_A;
+					    Bp += inc_B;
+				    };
+			      }
+			    else {
+			      for(int k=1; k <= kk; k++) {
 				cij += A( (istart-1) + i, k) * 
 				       B( (jstart-1) + j, k);
+			      };
 			    };
                            // ------------------
                            // store results to C
