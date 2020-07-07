@@ -24,7 +24,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                 return(  (x > y) ? x : y );
         };
 
-	int constexpr nb = 32;
+	int constexpr nb = 2*32;
 #ifdef USE_GPU
         // ---------------------------
         // use matlab 1 based indexing
@@ -71,14 +71,8 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
         //  ------------------------------------
         //  commonly  mm is large, but kk, nn are small
-        //
-        //  consider increasing nb_m for more effective
-        //  use of shared cache
-        //
         //  ------------------------------------
 
-	int const nb_n = min( nn, nb);
-	int const nb_m = min( mm, nb);
 
         auto A = [&] (int const ia,
                       int const ja) -> T const & {
@@ -98,12 +92,12 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
 
 
-        for(int jstart=1; jstart <= nn; jstart += nb_n) {
-            int const jend = min(nn, jstart + nb_n-1);
+        for(int jstart=1; jstart <= nn; jstart += nb) {
+            int const jend = min(nn, jstart + nb-1);
             int const jsize = jend  - jstart + 1;
 
-            for(int istart=1; istart <= mm;  istart += nb_m) {
-                int const iend = min( mm, istart + nb_m-1);
+            for(int istart=1; istart <= mm;  istart += nb) {
+                int const iend = min( mm, istart + nb-1);
                 int const isize = iend - istart + 1;
 
                 SYNCTHREADS;
