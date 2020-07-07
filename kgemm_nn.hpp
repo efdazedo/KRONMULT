@@ -24,7 +24,7 @@ void kgemm_nn( int const mm, int const nn, int const kk,
                 return(  (x > y) ? x : y );
         };
 
-	int constexpr nb = 32;
+	int constexpr nb = 2*32;
 #ifdef USE_GPU
         // ---------------------------
         // use matlab 1 based indexing
@@ -71,14 +71,11 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         //  ------------------------------------
         //  commonly  nn is large, but kk, nn are small
         //
-        //  consider increasing nb_n for more effective
+        //  consider increasing nb for more effective
         //  use of shared cache
         //
         //  ------------------------------------
 
-	int const nb_n = min( nn, nb);
-	int const nb_k = min( kk, nb);
-	int const nb_m = min( mm, nb);
 
         auto A = [&] (int const ia,
                       int const ja) -> T const & {
@@ -98,13 +95,13 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 
 
 
-        for(int istart=1; istart <= mm;  istart += nb_m) {
+        for(int istart=1; istart <= mm;  istart += nb) {
 
-          int const iend = min( mm, istart + nb_m-1);
+          int const iend = min( mm, istart + nb-1);
           int const isize = iend - istart + 1;
 
-         for(int jstart=1; jstart <= nn; jstart += nb_n) {
-            int const jend = min(nn, jstart + nb_n-1);
+         for(int jstart=1; jstart <= nn; jstart += nb) {
+            int const jend = min(nn, jstart + nb-1);
             int const jsize = jend  - jstart + 1;
 
 
@@ -122,15 +119,15 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 			    int const ia = (istart-1) + i;
 			    int const jb = (jstart-1) + j;
 
+			    auto const inc_A = ldA;
+			    auto const inc_B = 1;
 			    T cij = 0;
 			    bool constexpr use_pointer = true;
 			    if (use_pointer) {
 				    
 				    int k = 1;
 				    T const * Ap = &(A(ia,k));
-				    int64_t inc_A = &(A(ia,k+1)) - Ap;
 				    T const * Bp = &(B(k,jb));
-				    int64_t inc_B = &(B(k+1,jb)) - Bp;
 				    for(k=0; k < kk; k++) {
 					  cij += (*Ap) * (*Bp);
 					  Ap += inc_A;
