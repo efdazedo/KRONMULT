@@ -114,8 +114,8 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 		    // for(int j=iy_start; j <= jsize; j += iy_size) 
 	            // for(int i=ix_start; i <= isize; i += ix_size) {
 
-		    int64_t const inc_A = ldA;
-		    int64_t const inc_B = ldB;
+		    auto const inc_A = ldA;
+		    auto const inc_B = ldB;
 
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
 			    int const  i = (ij0 % isize) + 1;
