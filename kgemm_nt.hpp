@@ -78,7 +78,6 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         //  ------------------------------------
 
 	int const nb_n = min( nn, nb);
-	int const nb_k = min( kk, nb);
 	int const nb_m = min( mm, nb);
 
         auto A = [&] (int const ia,
@@ -115,6 +114,9 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 		    // for(int j=iy_start; j <= jsize; j += iy_size) 
 	            // for(int i=ix_start; i <= isize; i += ix_size) {
 
+		    int64_t const inc_A = ldA;
+		    int64_t const inc_B = ldB;
+
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
 			    int const  i = (ij0 % isize) + 1;
 			    int const  j = (ij0 - (i-1))/isize + 1;
@@ -125,9 +127,8 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 				    int ia = (istart-1) + i;
 				    int ib = (jstart-1) + j;
 				    T const * Ap = &(A(ia,k));
-                                    int64_t const inc_A = &(A(ia,k+1)) - Ap;
 				    T const * Bp = &(B(ib,k));
-				    int64_t const inc_B = &(B(ib,k+1)) - Bp;
+                                    #pragma unroll  
 				    for(k=0; k < kk; k++) {
 					    cij += (*Ap) * (*Bp);
 					    Ap += inc_A;
