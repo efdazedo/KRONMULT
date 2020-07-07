@@ -100,7 +100,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                 int const iend = min( mm, istart + nb-1);
                 int const isize = iend - istart + 1;
 
-                SYNCTHREADS;
+                 SYNCTHREADS;
 
                     // ---------------------------
                     // perform matrix calculations
