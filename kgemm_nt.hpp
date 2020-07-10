@@ -17,12 +17,19 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                T const beta,
                T * C_,  int const ldC)
 {
+#ifdef USE_LAMBDA
         auto min = []( int const x, int const y) {
                 return(  (x < y) ? x : y );
         };
         auto max = []( int const x, int const y) {
                 return(  (x > y) ? x : y );
         };
+#else
+
+#define min(x,y)  (((x) < (y)) ? (x) : (y) )
+#define max(x,y)  (((x) > (y)) ? (x) : (y) )
+
+#endif
 
 	int constexpr nb = 2*32;
 #ifdef USE_GPU
@@ -74,6 +81,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         //  ------------------------------------
 
 
+#ifdef USE_LAMBDA
         auto A = [&] (int const ia,
                       int const ja) -> T const & {
                 return( A_[ indx2f(ia,ja,ldA) ] );
@@ -89,7 +97,13 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                 return( C_[ indx2f(ic,jc,ldC) ] );
         };
 
+#else
 
+#define A(ia,ja)  A_[indx2f(ia,ja,ldA)]
+#define B(ib,jb)  B_[indx2f(ib,jb,ldB)]
+#define C(ic,jc)  C_[indx2f(ic,jc,ldC)]
+
+#endif
 
 
         for(int jstart=1; jstart <= nn; jstart += nb) {
@@ -156,5 +170,10 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         }; // end jstart
 }
 
+#undef min
+#undef max
+#undef A
+#undef B
+#undef C
 
 #endif
