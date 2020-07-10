@@ -1,3 +1,5 @@
+export OMP_NUM_THREADS=8
+export OMP_STACKSIZE=2G
 make clean;
 make ;
 ./test_kgemm_nn_batched
