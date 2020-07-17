@@ -136,11 +136,24 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 				    int ib = (jstart-1) + j;
 				    T const * Ap = &(A(ia,k));
 				    T const * Bp = &(B(ib,k));
+				    switch(kk) {
+                                    case 8: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 7: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 6: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 5: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 4: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 3: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 2: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+                                    case 1: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
+					    break;
+			            default:
                                     #pragma unroll  
 				    for(k=0; k < kk; k++) {
 					    cij += (*Ap) * (*Bp);
 					    Ap += inc_A;
 					    Bp += inc_B;
+				            };
+
 				    };
 			      }
 			    else {
