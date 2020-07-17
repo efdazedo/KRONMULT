@@ -143,16 +143,26 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 				    T const * Ap = &(A(ia,k));
 				    T const * Bp = &(B(k,jb));
 
+
+
+#define case_code(kk)  { \
+				       for(k=0; k < kk; k++) { \
+					    cij += (*Ap) * (*Bp); \
+					    Ap += inc_A; \
+					    Bp += inc_B; \
+				            }; \
+				       break; \
+				       }
+
 				    switch(kk) {
-                                    case 8: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 7: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 6: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 5: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 4: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 3: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 2: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-                                    case 1: { cij += (*Ap)*(*Bp); Ap += inc_A; Bp += inc_B; }
-					    break;
+				    case 1: case_code(1)
+				    case 2: case_code(2)
+				    case 3: case_code(3)
+				    case 4: case_code(4)
+				    case 5: case_code(5)
+				    case 6: case_code(6)
+				    case 7: case_code(7)
+				    case 8: case_code(8)
 			            default:
                                     #pragma unroll  
 				    for(k=0; k < kk; k++) {
@@ -162,7 +172,6 @@ void kgemm_nn( int const mm, int const nn, int const kk,
 				            };
 
 				    };
-
 			    }
 			    else {
 			      for(int k=1; k <= kk; k++) {
