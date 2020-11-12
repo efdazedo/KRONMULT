@@ -1,0 +1,9 @@
+#CXXFLAGS = -DUSE_GPU  -g -ggdb --save-temps
+#CXXFLAGS = -DUSE_GPU  -g -ggdb -O0 -DNDEBUG=1
+CXXFLAGS = -DUSE_GPU  -O3 -DNDEBUG=1
+#CXXFLAGS = -DUSE_GPU  -O3 
+#CXX=nvcc -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_70  --resource-usage --generate-line-info --maxrregcount 64
+CXX=hipcc  --amdgpu-target=gfx906,gfx908 -std=c++11 
+# CXX=hipcc -fopenmp --amdgpu-target=gfx906,gfx908 -std=c++11  -g -ggdb --save-temps
+# ${ROCM_PATH}/llvm/bin/llvm-objdump --mcpu=gfx906 --source --line-numbers 
+
