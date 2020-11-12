@@ -478,7 +478,7 @@ T test_kgemm_nn_batched( int const mm,
 
 int main()
 {
-        int const idebug = 2;
+        int const idebug = 0;
         int const inc = 7;
         int const kk_max = 65;
         int const mm_max = 65;
