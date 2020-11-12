@@ -1,10 +1,11 @@
+#include "hip/hip_runtime.h"
 #include <iostream>
 #include <cassert>
 #include <chrono>
 #include <unistd.h>
 
 #ifdef USE_GPU
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 #else
 #include <stdlib.h>
 #include <string.h>
@@ -17,11 +18,11 @@ static inline
 void host2gpu( void *dest, void *src, size_t nbytes )
 {
 #ifdef USE_GPU
-        cudaError_t istat = cudaMemcpy( dest, 
+        hipError_t istat = hipMemcpy( dest, 
                                         src, 
                                         nbytes,  
-                                        cudaMemcpyHostToDevice );
-        assert( istat == cudaSuccess );
+                                        hipMemcpyHostToDevice );
+        assert( istat == hipSuccess );
 #else
         memcpy( dest, src, nbytes );
 #endif
@@ -31,11 +32,11 @@ static inline
 void gpu2host( void * dest, void * src, size_t nbytes )
 {
 #ifdef USE_GPU
-        cudaError_t istat = cudaMemcpy( dest,
+        hipError_t istat = hipMemcpy( dest,
                                         src,
                                         nbytes,
-                                        cudaMemcpyDeviceToHost);
-        assert( istat == cudaSuccess );
+                                        hipMemcpyDeviceToHost);
+        assert( istat == hipSuccess );
 #else
         memcpy( dest, src, nbytes );
 #endif
@@ -46,8 +47,8 @@ static inline
 void *myalloc( size_t const nbytes ) {
               void *devPtr = nullptr;
 #ifdef USE_GPU
-              cudaError_t istat = cudaMalloc( &devPtr, nbytes );
-              assert( istat == cudaSuccess );
+              hipError_t istat = hipMalloc( &devPtr, nbytes );
+              assert( istat == hipSuccess );
 #else
               devPtr = malloc( nbytes );
 #endif
@@ -58,8 +59,8 @@ void *myalloc( size_t const nbytes ) {
 static inline
 void myfree( void * devPtr ) {
 #ifdef USE_GPU
-                cudaError_t istat = cudaFree( devPtr);
-                assert( istat == cudaSuccess );
+                hipError_t istat = hipFree( devPtr);
+                assert( istat == hipSuccess );
 #else
                 free( devPtr );
 #endif
@@ -327,11 +328,11 @@ T test_kgemm_nn_batched( int const mm,
         int const nwarps = min( min(32,mm), min(nn,kk));
         int const nthreads = nwarps * warpsize;
 
-        cudaError_t istat_sync_start = cudaDeviceSynchronize();
-        assert( istat_sync_start == cudaSuccess );
+        hipError_t istat_sync_start = hipDeviceSynchronize();
+        assert( istat_sync_start == hipSuccess );
 
 
-        kgemm_nn_batched<T><<< batchCount, nthreads >>>( mm,nn,kk, 
+        hipLaunchKernelGGL(HIP_KERNEL_NAME(kgemm_nn_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  mm,nn,kk, 
                           alpha,
                           ddAarray_, dldAarray_,
                           ddBarray_, dldBarray_,
@@ -339,8 +340,8 @@ T test_kgemm_nn_batched( int const mm,
                           ddCarray_, dldCarray_,
                           batchCount);
 
-        cudaError_t istat_sync_end = cudaDeviceSynchronize();
-        assert( istat_sync_end == cudaSuccess );
+        hipError_t istat_sync_end = hipDeviceSynchronize();
+        assert( istat_sync_end == hipSuccess );
         }
 #else
         {
@@ -388,7 +389,9 @@ T test_kgemm_nn_batched( int const mm,
 
 
         T max_abserr = 0;
+#ifdef _OPENMP
         #pragma omp parallel for reduction(max:max_abserr)
+#endif
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
               T const * const A_ = Aarray_[ibatch];
               T const * const B_ = Barray_[ibatch];
@@ -475,13 +478,20 @@ T test_kgemm_nn_batched( int const mm,
 
 int main()
 {
-        int const idebug = 0;
+        int const idebug = 2;
         int const inc = 7;
         int const kk_max = 65;
         int const mm_max = 65;
         int const nn_max = 65;
         int const batchCount_max = 2*inc + 1;
         double const tol = 1.0/(1000.0*1000.0);
+
+        std::cout << "batchCount_max = " 
+                  <<  batchCount_max
+                  <<  "\n";
+  
+
+
 
         int nerrors = 0;
         for(int batchCount=1; batchCount <= batchCount_max; batchCount += inc) {

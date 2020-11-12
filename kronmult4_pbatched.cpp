@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include "kronmult4_pbatched.hpp"
 
 void kronmult4_pbatched(
@@ -13,7 +14,7 @@ void kronmult4_pbatched(
         int constexpr nwarps = 8;
         int constexpr nthreads = nwarps * warpsize;
 
-        kronmult4_pbatched<double><<< batchCount, nthreads >>>( n, 
+        hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult4_pbatched<double>), dim3(batchCount), dim3(nthreads ), 0, 0,  n, 
            Aarray_, Xarray_, Yarray_, Warray_, batchCount);
 #else
         kronmult4_pbatched<double>( n, 

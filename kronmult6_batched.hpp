@@ -71,7 +71,9 @@ void kronmult6_batched(
 
 
 #ifndef USE_GPU
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
 #endif
         for(int ibatch=iz_start; ibatch <= batchCount; ibatch += iz_size) {
                 T* const Xp = &( X(1,ibatch) );

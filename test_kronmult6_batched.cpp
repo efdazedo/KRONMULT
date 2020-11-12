@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include <iostream>
 #include <cassert>
 #include <chrono>
@@ -13,7 +14,7 @@
 
 
 #ifdef USE_GPU
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 #else
 #include <stdlib.h>
 #include <string.h>
@@ -24,11 +25,11 @@ static inline
 void host2gpu( void *dest, void *src, size_t nbytes )
 {
 #ifdef USE_GPU
-        cudaError_t istat = cudaMemcpy( dest, 
+        hipError_t istat = hipMemcpy( dest, 
                                         src, 
                                         nbytes,  
-                                        cudaMemcpyHostToDevice );
-        assert( istat == cudaSuccess );
+                                        hipMemcpyHostToDevice );
+        assert( istat == hipSuccess );
 #else
         memcpy( dest, src, nbytes );
 #endif
@@ -38,11 +39,11 @@ static inline
 void gpu2host( void *dest, void *src, size_t nbytes )
 {
 #ifdef USE_GPU
-        cudaError_t istat = cudaMemcpy( dest,
+        hipError_t istat = hipMemcpy( dest,
                                         src,
                                         nbytes,
-                                        cudaMemcpyDeviceToHost);
-        assert( istat == cudaSuccess );
+                                        hipMemcpyDeviceToHost);
+        assert( istat == hipSuccess );
 #else
         memcpy( dest, src, nbytes );
 #endif
@@ -53,8 +54,8 @@ static inline
 void *myalloc( size_t nbytes ) {
               void *devPtr = nullptr;
 #ifdef USE_GPU
-              cudaError_t istat = cudaMalloc( &devPtr, nbytes );
-              assert( istat == cudaSuccess );
+              hipError_t istat = hipMalloc( &devPtr, nbytes );
+              assert( istat == hipSuccess );
 #else
               devPtr = malloc( nbytes );
 #endif
@@ -65,8 +66,8 @@ void *myalloc( size_t nbytes ) {
 static inline
 void myfree( void * devPtr ) {
 #ifdef USE_GPU
-                cudaError_t istat = cudaFree( devPtr);
-                assert( istat == cudaSuccess );
+                hipError_t istat = hipFree( devPtr);
+                assert( istat == hipSuccess );
 #else
                 free( devPtr );
 #endif
@@ -145,7 +146,9 @@ T test_kronmult_batched(  int const idim,
         //  initialize the arrays
         //  save a copy of Xarray in Z
         //  ---------------------
+#ifdef _OPENMP
         #pragma omp parallel for
+#endif
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
         for(int i=1; i <= Xsize; i++) {
               T const r1 = (i + (ibatch-1)*Xsize );
@@ -160,7 +163,9 @@ T test_kronmult_batched(  int const idim,
               Warray(i,ibatch) = 0;
               };
               };
+#ifdef _OPENMP
         #pragma omp parallel for 
+#endif
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
             for(int k=1; k <= idim; k++) {
             for(int j=1; j <= n; j++) {
@@ -195,42 +200,42 @@ T test_kronmult_batched(  int const idim,
         // note  the input Zarray will be over-written
         // --------------------------------------------
         switch(idim) { 
-        case 1:  kronmult1_batched<T><<< batchCount, nthreads >>>( n,
+        case 1:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult1_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  n,
                            dAarray_,
                            dZarray_,
                            dYarray_,
                            dWarray_,
                            batchCount );
             break;
-        case 2:  kronmult2_batched<T><<< batchCount, nthreads >>>( n,
+        case 2:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult2_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  n,
                            dAarray_,
                            dZarray_,
                            dYarray_,
                            dWarray_,
                            batchCount );
             break;
-        case 3:  kronmult3_batched<T><<< batchCount, nthreads >>>( n,
+        case 3:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult3_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  n,
                            dAarray_,
                            dZarray_,
                            dYarray_,
                            dWarray_,
                            batchCount );
             break;
-        case 4:  kronmult4_batched<T><<< batchCount, nthreads >>>( n,
+        case 4:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult4_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  n,
                            dAarray_,
                            dZarray_,
                            dYarray_,
                            dWarray_,
                            batchCount );
             break;
-        case 5:  kronmult5_batched<T><<< batchCount, nthreads >>>( n,
+        case 5:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult5_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  n,
                            dAarray_,
                            dZarray_,
                            dYarray_,
                            dWarray_,
                            batchCount );
             break;
-        case 6:  kronmult6_batched<T><<< batchCount, nthreads >>>( n,
+        case 6:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult6_batched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  n,
                            dAarray_,
                            dZarray_,
                            dYarray_,
@@ -244,8 +249,8 @@ T test_kronmult_batched(  int const idim,
         // -------------------------------------------
         // note important to wait for kernel to finish
         // -------------------------------------------
-        cudaError_t istat = cudaDeviceSynchronize();
-        assert( istat == cudaSuccess );
+        hipError_t istat = hipDeviceSynchronize();
+        assert( istat == hipSuccess );
         }
 #else
 
@@ -404,7 +409,9 @@ T test_kronmult_batched(  int const idim,
                 int const max_j5 = (idim >= 5) ? n : 1;
                 int const max_j6 = (idim >= 6) ? n : 1;
 
+#ifdef _OPENMP
                 #pragma omp parallel for collapse(6)  reduction(max:max_abserr)
+#endif
                 for(int i1=1; i1 <= max_i1; i1++) 
                 for(int i2=1; i2 <= max_i2; i2++) 
                 for(int i3=1; i3 <= max_i3; i3++) 

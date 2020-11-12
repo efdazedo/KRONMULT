@@ -1,11 +1,12 @@
+#include "hip/hip_runtime.h"
 #ifndef KRONCOMMON_HPP
 #define KRONCOMMON_HPP 1
 
 
 
 #ifdef USE_GPU
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime.h>
 #define GLOBAL_FUNCTION  __global__ 
 #define SYNCTHREADS __syncthreads()
 #define SHARED_MEMORY __shared__
@@ -31,7 +32,9 @@ static inline
 double atomicAdd(double volatile *p, double dvalue)
 {
         double oldvalue = 0;
+#ifdef _OPENMP
         #pragma omp atomic capture
+#endif
         {
         oldvalue = (*p);
         (*p) += dvalue;
@@ -43,7 +46,9 @@ static inline
 float atomicAdd( float volatile *p, float dvalue)
 {
         float oldvalue = 0;
+#ifdef _OPENMP
         #pragma omp atomic capture
+#endif
         {
         oldvalue = (*p);
         (*p) += dvalue;
