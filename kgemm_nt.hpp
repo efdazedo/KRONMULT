@@ -44,36 +44,21 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         assert( blockDim.z == 1);
 
         // -----------------------------------------
-        // reorganize threads as nx_threads by ny_threads
         // -----------------------------------------
-        int const nx_threads = warpsize;
-        int const ny_threads = max(1,nthreads/nx_threads);
         assert( (nthreads % warpsize) == 0);
 
-        int const ix_start = ( threadIdx.x % nx_threads ) + 1;
-        int const iy_start = (threadIdx.x/nx_threads) + 1;
 
-        int const ix_size = nx_threads;
-        int const iy_size = ny_threads;
 
 	int const ij_start = threadIdx.x + 1;
 	int const ij_size = nthreads;
 
 #else
 
-        int const ix_start = 1;
-        int const ix_size = 1;
-        int const iy_start = 1;
-        int const iy_size = 1;
 
 	int const ij_start = 1;
 	int const ij_size = 1;
 #endif
 
-        assert( ix_start >= 1);
-        assert( iy_start >= 1);
-        assert( ix_size >= 1 );
-        assert( iy_size >= 1 );
 
 
         //  ------------------------------------
@@ -119,8 +104,6 @@ void kgemm_nt( int const mm, int const nn, int const kk,
                     // ---------------------------
                     // perform matrix calculations
                     // ---------------------------
-		    // for(int j=iy_start; j <= jsize; j += iy_size) 
-	            // for(int i=ix_start; i <= isize; i += ix_size) {
 
 		    auto const inc_A = ldA;
 		    auto const inc_B = ldB;
