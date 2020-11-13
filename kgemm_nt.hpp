@@ -37,7 +37,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
         // use matlab 1 based indexing
         // ---------------------------
 
-	int constexpr warpsize = 32;
+	int constexpr warpsize = WARPSIZE;
         int const nthreads = blockDim.x; 
 
         assert( blockDim.y == 1);

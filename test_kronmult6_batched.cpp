@@ -192,8 +192,8 @@ T test_kronmult_batched(  int const idim,
         auto time_start = std::chrono::steady_clock::now();
 #ifdef USE_GPU
         {
-        int constexpr warpsize = 32;
-        int const nwarps = min(32,n);
+        int constexpr warpsize = WARPSIZE;
+        int const nwarps = 2;
         int const nthreads = nwarps * warpsize;
 
         // --------------------------------------------

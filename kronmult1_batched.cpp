@@ -10,8 +10,8 @@ void kronmult1_batched(
                        int const batchCount )
 {
 #ifdef USE_GPU
-        int constexpr warpsize = 32;
-        int constexpr nwarps = 8;
+        int constexpr warpsize = WARPSIZE;
+        int constexpr nwarps = 2;
         int constexpr nthreads = nwarps * warpsize;
 
         hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult1_batched<double>), dim3(batchCount), dim3(nthreads ), 0, 0,  n, 

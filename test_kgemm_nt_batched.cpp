@@ -323,8 +323,8 @@ T test_kgemm_nt_batched( int const mm,
 #ifdef USE_GPU
         {
 
-        int constexpr warpsize = 32;
-        int const nwarps = min( min(32,mm), min(nn,kk));
+        int constexpr warpsize = WARPSIZE;
+        int const nwarps = 2;
         int const nthreads = nwarps * warpsize;
 
         hipError_t istat_sync_start = hipDeviceSynchronize();

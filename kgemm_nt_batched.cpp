@@ -16,7 +16,7 @@ void kgemm_nt_batched( int const mm, int const nn, int const kk,
                        int const batchCount)
 {
 #ifdef USE_GPU
-        int constexpr warpsize = 32;
+        int constexpr warpsize = WARPSIZE;
         int constexpr nwarps = 8;
         int constexpr nthreads = nwarps * warpsize;
 

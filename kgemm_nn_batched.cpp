@@ -17,8 +17,8 @@ void kgemm_nn_batched( int const mm, int const nn, int const kk,
                        int const batchCount)
 {
 #ifdef USE_GPU
-        int constexpr warpsize = 32;
-        int constexpr nwarps = 8;
+        int constexpr warpsize = WARPSIZE;
+        int constexpr nwarps = 1;
         int constexpr nthreads = nwarps * warpsize;
 
         hipLaunchKernelGGL(HIP_KERNEL_NAME(kgemm_nn_batched<double>), dim3(batchCount), dim3(nthreads), 0, 0,  mm,nn,kk,

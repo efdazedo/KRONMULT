@@ -12,6 +12,13 @@
 #define SHARED_MEMORY __shared__
 #define DEVICE_FUNCTION __device__
 #define HOST_FUNCTION __host__
+
+#ifdef __NVCC__
+#define WARPSIZE 32
+#else
+#define WARPSIZE 64
+#endif
+
 #else
 #define GLOBAL_FUNCTION
 #define SYNCTHREADS 
