@@ -45,10 +45,7 @@ void kgemm_nn( int const mm, int const nn, int const kk,
         assert( (nthreads % warpsize) == 0);
 
         // -----------------------------------------
-        // reorganize threads as nx_threads by ny_threads
         // -----------------------------------------
-        int const nx_threads = warpsize;
-        int const ny_threads = max(1,nthreads/nx_threads);
 
 
 
