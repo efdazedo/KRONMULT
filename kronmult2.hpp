@@ -15,7 +15,7 @@
 template<typename T>
 DEVICE_FUNCTION
 void kronmult2( int const n, 
-                int const nvec,
+                int const nvec_in,
                 T   const A1_[],
                 T   const A2_[],
                 T   X_[],
@@ -25,7 +25,7 @@ void kronmult2( int const n,
 	        )
 // -----------------
 // note A1 is n by n
-//      X is (n^3 by nvec)
+//      X is (n^3 by nvec_in)
 // -----------------
 {
     int const lda = (lda_in == 0) ? n : lda_in;
@@ -33,6 +33,7 @@ void kronmult2( int const n,
 
     int const ldX = n2;
     int const ldW = n2;
+    int const ldY = n2;
 
     auto X = [&] (int const i,
                   int const j) -> T& {
@@ -44,8 +45,17 @@ void kronmult2( int const n,
             return( W_[ indx2f(i,j,ldW) ] );
     };
 
+    auto Y = [&] (int const i,
+                  int const j) -> T& {
+            return( Y_[ indx2f(i,j,ldY) ] );
+    };
 
-    for(int i=1; i <= nvec; i++) {
+    int const nb = 64;
+    for(int istart=1; istart <= nvec_in; istart += nb) {
+        int const iend = min( nvec_in, istart + nb - 1);
+        int const nvec = iend - istart + 1;
+
+        for(int i=istart; i <= iend; i++) {
             T *Xi_ = &( X(1, i) );
             T *Wi_ = &( W(1, i) );
             int const ldXi = n;
@@ -85,7 +95,7 @@ void kronmult2( int const n,
                       alpha, Ap, ld1,
                              Bp, ld2,
                       beta,  Cp, ld3 );
-    };
+    }; // for(i)
 
     int const next_nvec = nvec * n;
 
@@ -93,10 +103,17 @@ void kronmult2( int const n,
     // note now X_ is used as workspace
     // --------------------------------
     {
+    int const i = istart;
+    T *Xi_ = &( X(1, i) );
+    T *Wi_ = &( W(1, i) );
+    T *Yi_ = &( Y(1, i) );
+
     kronmult1( n, next_nvec, 
                A2_, 
-               W_,  Y_,   X_, lda );
-    }
+               Wi_,  Yi_,   Xi_, lda );
+    };
+
+   }; // for(istart)
 
 }
 
