@@ -50,14 +50,19 @@ void kronmult2( int const n,
             return( Y_[ indx2f(i,j,ldY) ] );
     };
 
-    int const nb = 64;
+    // --------------------------------------------------
+    // perform blocking to reuse only a small part of "W"
+    // to encourage better cache reuse
+    // --------------------------------------------------
+    int const nb = 256;
     for(int istart=1; istart <= nvec_in; istart += nb) {
         int const iend = min( nvec_in, istart + nb - 1);
         int const nvec = iend - istart + 1;
 
         for(int i=istart; i <= iend; i++) {
-            T *Xi_ = &( X(1, i) );
-            T *Wi_ = &( W(1, 1+(i-istart)));
+            T * const Xi_ = &( X(1, i) );
+            T * const Wi_ = &( W(1, 1+(i-istart)));
+
             int const ldXi = n;
             int const ldWi = n;
             // ----------------------------
@@ -104,9 +109,10 @@ void kronmult2( int const n,
     // --------------------------------
     {
     int const i = istart;
-    T *Xi_ = &( X(1, 1) );
-    T *Wi_ = &( W(1, 1) );
-    T *Yi_ = &( Y(1, i) );
+    T * const Xi_ = &( X(1, 1) );
+    T * const Wi_ = &( W(1, 1) );
+
+    T * const Yi_ = &( Y(1, i) );
 
     kronmult1( n, next_nvec, 
                A2_, 
