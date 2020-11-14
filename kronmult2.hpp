@@ -57,7 +57,7 @@ void kronmult2( int const n,
 
         for(int i=istart; i <= iend; i++) {
             T *Xi_ = &( X(1, i) );
-            T *Wi_ = &( W(1, i) );
+            T *Wi_ = &( W(1, 1+(i-istart)));
             int const ldXi = n;
             int const ldWi = n;
             // ----------------------------
@@ -104,8 +104,8 @@ void kronmult2( int const n,
     // --------------------------------
     {
     int const i = istart;
-    T *Xi_ = &( X(1, i) );
-    T *Wi_ = &( W(1, i) );
+    T *Xi_ = &( X(1, 1) );
+    T *Wi_ = &( W(1, 1) );
     T *Yi_ = &( Y(1, i) );
 
     kronmult1( n, next_nvec, 
