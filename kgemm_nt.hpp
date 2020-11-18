@@ -8,13 +8,13 @@
 //  NotransA and TransB case
 //  C = alpha*A*transpose(B) + beta *C
 //  -----------------------
-template<typename T>
+template<typename T,typename Tc>
 DEVICE_FUNCTION
-void kgemm_nt( int const mm, int const nn, int const kk, 
-               T const alpha,
+void kgemm_nt2( int const mm, int const nn, int const kk, 
+               T const alpha_in,
                T const * const A_,  int const ldA,
                T const * const B_,  int const ldB,
-               T const beta,
+               T const beta_in,
                T * C_,  int const ldC)
 {
 #ifdef USE_LAMBDA
@@ -31,6 +31,8 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
 #endif
 
+        Tc const alpha = alpha_in;
+        Tc const beta = beta_in;
 	int constexpr nb = 2*32;
 #ifdef USE_GPU
         // ---------------------------
@@ -111,7 +113,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
 			    int const  i = (ij0 % isize) + 1;
 			    int const  j = (ij0 - (i-1))/isize + 1;
-			    T cij = 0;
+			    Tc cij = 0;
 			    bool constexpr use_pointer = true;
 			    if (use_pointer) {
 				    int k = 1;
@@ -122,7 +124,9 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 
 #define case_code(kk)  { \
 				       for(int k=0; k < kk; k++) { \
-					    cij += (*Ap) * (*Bp); \
+					    Tc const aik = (*Ap); \
+					    Tc const bjk = (*Bp); \
+					    cij += aik * bjk; \
 					    Ap += inc_A; \
 					    Bp += inc_B; \
 				            }; \
@@ -139,19 +143,14 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 				    case 7: case_code(7)
 				    case 8: case_code(8)
 			            default:
-                                    #pragma unroll  
-				    for(int k=0; k < kk; k++) {
-					    cij += (*Ap) * (*Bp);
-					    Ap += inc_A;
-					    Bp += inc_B;
-				            };
-
+                                    case_code(kk);
 				    };
 			      }
 			    else {
 			      for(int k=1; k <= kk; k++) {
-				cij += A( (istart-1) + i, k) * 
-				       B( (jstart-1) + j, k);
+				Tc const aik = A( (istart-1) + i, k);  
+				Tc const bjk = B( (jstart-1) + j, k);
+				cij += aik * bjk;
 			      };
 			    };
                            // ------------------
@@ -174,6 +173,41 @@ void kgemm_nt( int const mm, int const nn, int const kk,
             }; // end istart
         }; // end jstart
 }
+
+template<typename T>
+DEVICE_FUNCTION
+void kgemm_nt( int const mm, int const nn, int const kk, 
+               T const alpha_in,
+               T const * const A_,  int const ldA,
+               T const * const B_,  int const ldB,
+               T const beta_in,
+               T * C_,  int const ldC)
+{
+   kgemm_nt2<T,T>(
+       mm, nn, kk,
+       alpha_in, A_, ldA, B_, ldB,
+       beta_in,  C_, ldC );
+}
+
+
+template<>
+DEVICE_FUNCTION
+void kgemm_nt( int const mm, int const nn, int const kk, 
+               float const alpha_in,
+               float const * const A_,  int const ldA,
+               float const * const B_,  int const ldB,
+               float const beta_in,
+               float * C_,  int const ldC)
+{
+   kgemm_nt2<float,double>(
+       mm, nn, kk,
+       alpha_in, A_, ldA, B_, ldB,
+       beta_in,  C_, ldC );
+}
+
+
+
+
 
 #undef min
 #undef max
