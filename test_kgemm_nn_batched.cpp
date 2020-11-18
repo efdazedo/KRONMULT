@@ -69,7 +69,7 @@ void myfree( void * devPtr ) {
 #endif
 }
 
-template<typename T>
+template<typename T, typename Tc=double>
 T test_kgemm_nn_batched( int const mm,
                               int const nn,
                               int const kk,
@@ -391,7 +391,7 @@ T test_kgemm_nn_batched( int const mm,
         };
 
 
-        T max_abserr = 0;
+        double max_abserr = 0;
 #ifdef _OPENMP
         #pragma omp parallel for reduction(max:max_abserr)
 #endif
@@ -422,16 +422,19 @@ T test_kgemm_nn_batched( int const mm,
 
               for(int j=1; j <= nn; j++) {
               for(int i=1; i <= mm; i++) {
-                      T cij = 0;
+                      Tc cij = 0;
                       for(int k=1; k <= kk; k++) {
                              // ------------
                              // Note C = A*B
                              // ------------
-                             cij += A(i,k) * B(k,j);
+ 
+                             Tc aik = A(i,k);
+                             Tc bkj = B(k,j);
+                             cij += aik * bkj;
                       };
                       cij = alpha * cij + beta * cij0;
 
-                      T const abserr = std::abs( cij  - C(i,j) );
+                      double const abserr = std::abs( cij  - C(i,j) );
                       max_abserr = std::max( max_abserr, abserr );
               };
               };
@@ -479,7 +482,7 @@ T test_kgemm_nn_batched( int const mm,
 
 
 
-template<typename T>
+template<typename T, typename Tc=double>
 int main_func( double const tol)
 {
         int const idebug = 0;
@@ -501,7 +504,7 @@ int main_func( double const tol)
         for(int kk=1; kk <= kk_max; kk += inc) {
         for(int nn=1; nn <= nn_max; nn += inc) {
         for(int mm=1; mm <= mm_max; mm += inc) {
-                T const max_abserr = test_kgemm_nn_batched<T>(mm,nn,kk,batchCount,idebug);
+                double const max_abserr = test_kgemm_nn_batched<T,Tc>(mm,nn,kk,batchCount,idebug);
                 bool const isok = (max_abserr < tol);
 
                 if (!isok) {
@@ -550,7 +553,7 @@ int main_func( double const tol)
 }
 
 int main() {
-  float const stol  = 0.0005;
+  double const stol  = 0.0005;
   double const dtol = 1.0/(1000.0 * 1000.0 * 1000.0);
   main_func<double>(dtol);
   main_func<float>(stol);
