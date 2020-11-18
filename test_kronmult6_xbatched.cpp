@@ -74,8 +74,8 @@ void myfree( void * devPtr ) {
 }
      
 
-template<typename T>
-T test_kronmult_xbatched(  int const idim,
+template<typename T, typename Tc=double>
+double test_kronmult_xbatched(  int const idim,
                           int const n, int const batchCount, 
                           int const idebug = 0, 
                           bool const do_check  = true,
@@ -449,7 +449,7 @@ T test_kronmult_xbatched(  int const idim,
         };
 
 
-   T max_abserr = 0;
+   Tc max_abserr = 0;
    if (do_check) {
         // -------------
         // check results
@@ -526,7 +526,7 @@ T test_kronmult_xbatched(  int const idim,
                    int const ic = 1+indx6f( i6,i5,i4,i3,i2,i1,
                                             max_i6, max_i5, max_i4, 
                                             max_i3, max_i2 );
-                   T Y_ic = 0;
+                   Tc Y_ic = 0;
 
 
                    for(int j1=1; j1 <= max_j1; j1++) {
@@ -544,7 +544,7 @@ T test_kronmult_xbatched(  int const idim,
                                                max_j3, max_j2 );
 
 
-                      T C_ic_jc =  1;
+                      Tc C_ic_jc =  1;
                       C_ic_jc *= (idim >= 1) ? A1(i1,j1) : 1;
                       C_ic_jc *= (idim >= 2) ? A2(i2,j2) : 1;
                       C_ic_jc *= (idim >= 3) ? A3(i3,j3) : 1;
@@ -555,7 +555,7 @@ T test_kronmult_xbatched(  int const idim,
 
 
 
-                      T const X_jc = X(jc);
+                      Tc const X_jc = X(jc);
 
                       Y_ic += C_ic_jc * X_jc;
                    };
@@ -578,9 +578,9 @@ T test_kronmult_xbatched(  int const idim,
 
                 int const max_ic = std::pow( n, idim );
                 for(int ic=1; ic <= max_ic; ic++) { 
-                   T Y_ic = 0;
-                   T Yval = 0;
-                   T abs_err = 0;
+                   Tc Y_ic = 0;
+                   Tc Yval = 0;
+                   Tc abs_err = 0;
 
                    if (use_overlap_in_Y) {
                         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
@@ -647,7 +647,8 @@ T test_kronmult_xbatched(  int const idim,
 
 
                       
-int main() {
+template<typename T>
+int main_func( double const tol) {
 
         int const idebug = 0;
 
@@ -666,8 +667,7 @@ int main() {
                 int const n = n_table[in_table];
                 int const batchCount = batch_table[ibatch_table];
 
-                double const max_abserr =  test_kronmult_xbatched<double>( idim, n, batchCount, idebug );
-                double const tol = 1.0/(1000.0 * 1000.0);
+                double const max_abserr =  test_kronmult_xbatched<T>( idim, n, batchCount, idebug );
                 bool const isok = (max_abserr <= tol);
                 if (!isok) {
                         nerrors += 1;
@@ -702,7 +702,7 @@ int main() {
 
 
                for(int n=4; n <= 8; n++) {
-                test_kronmult_xbatched<double>(idim,n, batchCount, idebug, do_check );
+                test_kronmult_xbatched<T>(idim,n, batchCount, idebug, do_check );
                };
         };
 
@@ -715,4 +715,11 @@ int main() {
 
                      
 
+int main()
+{
+  double const stol = 0.0005;
+  double const dtol = 1.0/(1000.0 * 1000.0 * 1000.0);
+  main_func<double>( dtol );
+  // main_func<float>( stol );
+}
 
