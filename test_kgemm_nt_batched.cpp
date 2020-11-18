@@ -471,7 +471,8 @@ T test_kgemm_nt_batched( int const mm,
         return(max_abserr);
 }
 
-int main()
+template<typename T>
+int main_func( double const tol)
 {
         int const idebug = 0;
         int const inc = 7;
@@ -479,7 +480,6 @@ int main()
         int const mm_max = 65;
         int const nn_max = 65;
         int const batchCount_max = 2*inc + 1;
-        double const tol = 1.0/(1000.0*1000.0);
 
         int nerrors = 0;
         for(int batchCount=1; batchCount <= batchCount_max; batchCount += inc) {
@@ -487,7 +487,7 @@ int main()
         for(int nn=1; nn <= nn_max; nn += inc) {
         for(int mm=1; mm <= mm_max; mm += inc) {
                 double const max_abserr = test_kgemm_nt_batched<double>(mm,nn,kk,batchCount,idebug);
-                double const isok = (max_abserr < tol);
+                bool const isok = (max_abserr < tol);
 
                 if (!isok) {
                         nerrors += 1;
@@ -526,7 +526,7 @@ int main()
                 int const nn = n;
                 int const kk = n;
 
-                test_kgemm_nt_batched<double>(mm,nn,kk,batchCount,idebug);
+                test_kgemm_nt_batched<T>(mm,nn,kk,batchCount,idebug);
                 batchCount *= n;
                 };
 
@@ -538,6 +538,13 @@ int main()
 
 
 
+int main()
+{
+  double const dtol = 1.0/(1000.0 * 1000.0);
+  double const stol = 0.0002;
+  main_func<double>( dtol );
+  main_func<float>( stol );
+}
 
 
 
