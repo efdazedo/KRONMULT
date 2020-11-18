@@ -450,6 +450,7 @@ double test_kronmult_xbatched(  int const idim,
 
 
    Tc max_abserr = 0;
+   Tc max_relerr = 0;
    if (do_check) {
         // -------------
         // check results
@@ -514,7 +515,7 @@ double test_kronmult_xbatched(  int const idim,
                 int const max_j6 = (idim >= 6) ? n : 1;
 
 #ifdef _OPENMP
-                #pragma omp parallel for collapse(6)  reduction(max:max_abserr)
+                #pragma omp parallel for collapse(6)  
 #endif
                 for(int i1=1; i1 <= max_i1; i1++) 
                 for(int i2=1; i2 <= max_i2; i2++) 
@@ -581,6 +582,8 @@ double test_kronmult_xbatched(  int const idim,
                    Tc Y_ic = 0;
                    Tc Yval = 0;
                    Tc abs_err = 0;
+                   Tc rel_err = 0;
+
 
                    if (use_overlap_in_Y) {
                         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
@@ -593,19 +596,22 @@ double test_kronmult_xbatched(  int const idim,
                                Yval = Y2array(ic,ibatch);
                                Y_ic  = Yarray(ic,ibatch);
                                abs_err = std::abs(Yval - Y_ic);
+                               rel_err = abs_err/(1+std::max( std::abs(Yval),std::abs(Y_ic) ));
                        };
                    };
                    max_abserr = std::max( max_abserr,abs_err);
+                   max_relerr = std::max( max_relerr,rel_err);
 
 
 
                    if (idebug >= 1) {
                        T const tol = 1.0/(1000.0 * 1000.0);
-                       if (abs_err > tol ) {
+                       if ((abs_err > tol ) || (rel_err > tol)) {
                              std::cout  << " idim = " << idim
                                         << " ic = " << ic 
                                         << " Y_ic = " << Y_ic
                                         << " Yval =  " << Yval
+                                        << " rel_err =  " << rel_err
                                         << " abs_err = " << abs_err << "\n";
                        };
                      };
@@ -641,7 +647,7 @@ double test_kronmult_xbatched(  int const idim,
         free( Zarray_ ); Zarray_ = nullptr;
         free( Warray_ ); Warray_ = nullptr;
 
-        return(max_abserr);
+        return(std::min(max_abserr,max_relerr)); 
 
 }
 
@@ -717,9 +723,9 @@ int main_func( double const tol) {
 
 int main()
 {
-  double const stol = 0.0005;
-  double const dtol = 1.0/(1000.0 * 1000.0 * 1000.0);
+  double const stol = 0.000001;
+  double const dtol = 300.0/(1000.0 * 1000.0 *1000.0);
   main_func<double>( dtol );
-  // main_func<float>( stol );
+  main_func<float>( stol );
 }
 
