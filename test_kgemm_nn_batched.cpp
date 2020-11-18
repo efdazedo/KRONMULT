@@ -3,6 +3,9 @@
 #include <cassert>
 #include <chrono>
 #include <unistd.h>
+#include <cmath>
+#include <limits>
+#include <algorithm>
 
 #ifdef USE_GPU
 #include <hip/hip_runtime.h>
@@ -476,7 +479,8 @@ T test_kgemm_nn_batched( int const mm,
 
 
 
-int main()
+template<typename T>
+int main_func( double const tol)
 {
         int const idebug = 0;
         int const inc = 7;
@@ -484,7 +488,6 @@ int main()
         int const mm_max = 65;
         int const nn_max = 65;
         int const batchCount_max = 2*inc + 1;
-        double const tol = 1.0/(1000.0*1000.0);
 
         std::cout << "batchCount_max = " 
                   <<  batchCount_max
@@ -498,8 +501,8 @@ int main()
         for(int kk=1; kk <= kk_max; kk += inc) {
         for(int nn=1; nn <= nn_max; nn += inc) {
         for(int mm=1; mm <= mm_max; mm += inc) {
-                double const max_abserr = test_kgemm_nn_batched<double>(mm,nn,kk,batchCount,idebug);
-                double const isok = (max_abserr < tol);
+                T const max_abserr = test_kgemm_nn_batched<T>(mm,nn,kk,batchCount,idebug);
+                bool const isok = (max_abserr < tol);
 
                 if (!isok) {
                         nerrors += 1;
@@ -537,7 +540,7 @@ int main()
                   int const mm = n;
                   int const nn = n5;
                   int const kk = n;
-                  test_kgemm_nn_batched<double>(mm,nn,kk,batchCount,idebug);
+                  test_kgemm_nn_batched<T>(mm,nn,kk,batchCount,idebug);
                   };
         };
 
@@ -545,3 +548,11 @@ int main()
 
         return(0);
 }
+
+int main() {
+  float const stol  = 0.0005;
+  double const dtol = 1.0/(1000.0 * 1000.0 * 1000.0);
+  main_func<double>(dtol);
+  main_func<float>(stol);
+}
+

@@ -121,7 +121,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 				    T const * Bp = &(B(ib,k));
 
 #define case_code(kk)  { \
-				       for(k=0; k < kk; k++) { \
+				       for(int k=0; k < kk; k++) { \
 					    cij += (*Ap) * (*Bp); \
 					    Ap += inc_A; \
 					    Bp += inc_B; \
@@ -140,7 +140,7 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 				    case 8: case_code(8)
 			            default:
                                     #pragma unroll  
-				    for(k=0; k < kk; k++) {
+				    for(int k=0; k < kk; k++) {
 					    cij += (*Ap) * (*Bp);
 					    Ap += inc_A;
 					    Bp += inc_B;
@@ -180,5 +180,6 @@ void kgemm_nt( int const mm, int const nn, int const kk,
 #undef A
 #undef B
 #undef C
+#undef case_code
 
 #endif
