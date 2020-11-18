@@ -590,6 +590,7 @@ double test_kronmult_xbatched(  int const idim,
                                 Yval += Y2array(ic,ibatch);
                         };
                         abs_err = std::abs( Yval - Yarray(ic,1) );
+		        rel_err = abs_err/(1+std::max( std::abs(Yval),std::abs(Y_ic) ));
                    }
                    else {
                        for(int ibatch=1; ibatch <= batchCount; ibatch++) {
@@ -674,7 +675,7 @@ int main_func( double const tol) {
                 int const batchCount = batch_table[ibatch_table];
 
                 double const max_abserr =  test_kronmult_xbatched<T>( idim, n, batchCount, idebug );
-                bool const isok = (max_abserr <= tol);
+                bool const isok = (max_abserr < tol);
                 if (!isok) {
                         nerrors += 1;
                 };
@@ -723,7 +724,7 @@ int main_func( double const tol) {
 
 int main()
 {
-  double const stol = 0.000001;
+  double const stol = 10.0/(1000.0 * 1000.0);
   double const dtol = 300.0/(1000.0 * 1000.0 *1000.0);
   main_func<double>( dtol );
   main_func<float>( stol );
