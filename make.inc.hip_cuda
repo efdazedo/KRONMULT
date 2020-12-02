@@ -1,10 +1,14 @@
-#CXXFLAGS = -DUSE_GPU  -g -ggdb --save-temps
-#CXXFLAGS = -DUSE_GPU  -g -ggdb -O0 -DNDEBUG=1
+# need export HIP_PLATFORM=nvcc
 CXXFLAGS = -DUSE_GPU  -O3 -UNDEBUG 
-#CXXFLAGS = -DUSE_GPU  -O3 
 #CXX=nvcc -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_70  --resource-usage --generate-line-info --maxrregcount 64
 #CXX=hipcc  --cuda-compile-host-device --cuda-path=$CUDA_PATH -std=c++11  
 
 # export HIP_PLATFORM=nvcc
-CXX=hipcc    -std=c++11  
-CXX=hipcc  -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_70 -std=c++11
+#CXX=hipcc    -std=c++11  
+#CXX=hipcc  --cuda-compile-host-device -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_70 -std=c++11
+#CXX=hipcc  -std=c++11 --cuda-compile-host-device -x cu  -Xcompiler -fopenmp  -Xarch_device sm_70
+#CXX=hipcc  -std=c++11 --cuda-compile-host-device -x cu   --compile-arch=sm_70 -Xcompiler -fPIC
+#CXX=hipcc  -std=c++11  -x cu   -gencode=arch=compute_70,code=sm_70
+
+CXX=hipcc  -std=c++11  -x cu   -Xcompiler -fopenmp  --gpu-architecture=sm_70  --resource-usage --generate-line-info --maxrregcount 64
+
