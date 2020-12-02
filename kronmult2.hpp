@@ -55,7 +55,8 @@ void kronmult2( int const n,
     // to encourage better cache reuse
     // --------------------------------------------------
     int const cache_size = 32*1024;
-    int const nb = max(1, cache_size/(2*n*n*sizeof(T)) );
+    int const nb_cache = cache_size/(2*n*n*sizeof(T));
+    int const nb = max(1, nb_cache );
     for(int istart=1; istart <= nvec_in; istart += nb) {
         int const iend = min( nvec_in, istart + nb - 1);
         int const nvec = iend - istart + 1;
