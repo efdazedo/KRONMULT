@@ -1,8 +1,9 @@
-#include "hip/hip_runtime.h"
 #include <iostream>
 #include <cassert>
 #include <chrono>
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "kroncommon.hpp"
 #include "kronmult6_pbatched.hpp"
@@ -13,12 +14,6 @@
 #include "kronmult1_pbatched.hpp"
 
 
-#ifdef USE_GPU
-#include <hip/hip_runtime.h>
-#else
-#include <stdlib.h>
-#include <string.h>
-#endif
 
 
 static inline
