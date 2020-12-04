@@ -31,6 +31,7 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include <string.h>
 
 #ifndef USE_GPU
 
