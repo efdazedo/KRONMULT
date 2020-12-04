@@ -49,7 +49,7 @@ void kronmult3_xbatched(
 
 	int const ndim = 3;
 
-        auto Aarray = [&] (int const i1,
+        auto Aarray = [=] (int const i1,
                            int const i2
                            ) -> T const * const   {
                 return( Aarray_[ indx2f(i1,i2,ndim ) ] );

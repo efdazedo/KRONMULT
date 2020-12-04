@@ -36,12 +36,12 @@ void kronmult3( int const n,
     int const ldW = n3;
 
 
-    auto X = [&] (int const i,
+    auto X = [=] (int const i,
                   int const j) -> T& {
             return( X_[ indx2f(i,j,ldX) ] );
     };
 
-    auto W = [&] (int const i,
+    auto W = [=] (int const i,
                   int const j) -> T& {
             return( W_[ indx2f(i,j,ldW) ] );
     };
@@ -56,12 +56,12 @@ void kronmult3( int const n,
             // Wi viewed as (n^2 by n) array
             // ----------------------------
 
-            auto Xi = [&] (int const i,
+            auto Xi = [=] (int const i,
                            int const j) -> T& {
                     return(  Xi_[ indx2f(i,j,ldXi) ] );
             };
 
-            auto Wi = [&] (int const i,
+            auto Wi = [=] (int const i,
                            int const j) -> T& {
                     return(  Wi_[ indx2f(i,j,ldWi) ] );
             };

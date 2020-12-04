@@ -45,22 +45,22 @@ void kronmult3_batched(
 
 
 
-        auto X = [&] (int const i,
+        auto X = [=] (int const i,
                       int const j) -> T& {
                 return(  X_[ indx2f(i,j,n3) ] );
         };
 
-        auto Y = [&] (int const i,
+        auto Y = [=] (int const i,
                       int const j) -> T& {
                 return(  Y_[ indx2f(i,j,n3) ] );
         };
 
-        auto W = [&] (int const i,
+        auto W = [=] (int const i,
                       int const j) -> T& {
                 return(  W_[ indx2f(i,j,n3) ] );
         };
 
-        auto Aarray = [&] (int const i1,
+        auto Aarray = [=] (int const i1,
                            int const i2,
                            int const i3,
                            int const i4) -> T const & {
