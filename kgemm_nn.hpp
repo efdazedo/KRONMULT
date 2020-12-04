@@ -75,17 +75,17 @@ void kgemm_nn2( int const mm, int const nn, int const kk,
 
 
 #ifdef USE_LAMBDA
-        auto A = [&] (int const ia,
+        auto A = [=] (int const ia,
                       int const ja) -> T const & {
                 return( A_[ indx2f(ia,ja,ldA) ] );
         };
 
-        auto B = [&] (int const ib,
+        auto B = [=] (int const ib,
                       int const jb) -> T const & {
                 return( B_[ indx2f(ib,jb,ldB) ] );
         };
 
-        auto C = [&] (int const ic,
+        auto C = [=] (int const ic,
                       int const jc) -> T& {
                 return( C_[ indx2f(ic,jc,ldC) ] );
         };
