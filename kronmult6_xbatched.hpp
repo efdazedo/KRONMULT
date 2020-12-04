@@ -1,9 +1,9 @@
 #ifndef KRONMULT6_XBATCHED_HPP
 #define KRONMULT6_XBATCHED_HPP 1
 
-#include "kroncommon.hpp"
 
-#include "kronmult6.hpp"
+#include "kronmult_xbatched.hpp"
+
 
 
 
@@ -20,7 +20,8 @@ void kronmult6_xbatched(
                        T* pX_[],
                        T* pY_[],
                        T* pW_[],
-                       int const batchCount)
+                       int const batchCount,
+		       int const subbatchCount = 0)
 //
 // conceptual shape of Aarray is  (ndim,batchCount)
 //
@@ -34,49 +35,8 @@ void kronmult6_xbatched(
 //
 //
 {
-#ifdef USE_GPU
-        // -------------------------------------------
-        // note 1-based matlab convention for indexing
-        // -------------------------------------------
-        int const iz_start = blockIdx.x + 1;
-        int const iz_size =  gridDim.x;
-        assert( gridDim.y == 1);
-        assert( gridDim.z == 1);
-#else
-        int const iz_start = 1;
-        int const iz_size = 1;
-#endif
-
-	int const ndim = 6;
-
-        auto Aarray = [=] (int const i1,
-                           int const i2
-                           ) -> T const * const  {
-                return( Aarray_[ indx2f(i1,i2,ndim ) ] );
-        };
-
-
-
-#ifndef USE_GPU
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-#endif
-        for(int ibatch=iz_start; ibatch <= batchCount; ibatch += iz_size) {
-                T* const Xp =  pX_[ (ibatch-1) ];
-                T* const Yp =  pY_[ (ibatch-1) ];
-                T* const Wp =  pW_[ (ibatch-1) ];
-
-                T const * const A1 = (Aarray(1,ibatch));
-                T const * const A2 = (Aarray(2,ibatch));
-                T const * const A3 = (Aarray(3,ibatch));
-                T const * const A4 = (Aarray(4,ibatch));
-                T const * const A5 = (Aarray(5,ibatch));
-                T const * const A6 = (Aarray(6,ibatch));
-                int const nvec = 1;
-                kronmult6( n, nvec, A1,A2,A3,A4,A5,A6, Xp, Yp, Wp, lda);
-        };
-
+	kronmult_xbatched<T,6>(
+			n, Aarray_, lda, pX_, pY_, pW_, batchCount, subbatchCount );
 }
 
 
