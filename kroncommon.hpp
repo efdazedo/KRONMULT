@@ -1,4 +1,3 @@
-#include "hip/hip_runtime.h"
 #ifndef KRONCOMMON_HPP
 #define KRONCOMMON_HPP 1
 

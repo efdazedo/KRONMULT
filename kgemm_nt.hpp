@@ -26,8 +26,13 @@ void kgemm_nt2( int const mm, int const nn, int const kk,
         };
 #else
 
+#ifndef min
 #define min(x,y)  (((x) < (y)) ? (x) : (y) )
+#endif
+
+#ifndef max
 #define max(x,y)  (((x) > (y)) ? (x) : (y) )
+#endif
 
 #endif
 

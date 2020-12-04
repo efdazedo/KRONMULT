@@ -50,6 +50,17 @@ void kronmult2( int const n,
             return( Y_[ indx2f(i,j,ldY) ] );
     };
 
+    auto min = [](int const i,
+		  int const j) -> int const {
+	    return( (i < j) ? i : j );
+    };
+
+    auto max = [](int const i,
+		  int const j) -> int const {
+	    return( (i > j) ? i : j );
+    };
+
+
     // --------------------------------------------------
     // perform blocking to reuse only a small part of "W"
     // to encourage better cache reuse
