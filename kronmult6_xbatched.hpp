@@ -25,9 +25,9 @@ void kronmult6_xbatched(
 //
 // conceptual shape of Aarray is  (ndim,batchCount)
 //
-// pX_[] is array of pointers to X[], each of size n^6
-// pY_[] is array of pointers to Y[], each of size n^6
-// pW_[] is array of pointers to Z[], each of size n^6
+// pX_[] is array of pointers to X[], each of size n^ndim
+// pY_[] is array of pointers to Y[], each of size n^ndim
+// pW_[] is array of pointers to Z[], each of size n^ndim
 //
 // Y is the output
 // X is the input (but may be modified)
@@ -35,7 +35,8 @@ void kronmult6_xbatched(
 //
 //
 {
-	kronmult_xbatched<T,6>(
+        int constexpr ndim = 6;
+	kronmult_xbatched<T,ndim>(
 			n, Aarray_, lda, pX_, pY_, pW_, batchCount, subbatchCount );
 }
 

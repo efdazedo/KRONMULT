@@ -1,9 +1,9 @@
 #ifndef KRONMULT2_XBATCHED_HPP
 #define KRONMULT2_XBATCHED_HPP 1
 
-#include "kroncommon.hpp"
 
-#include "kronmult2.hpp"
+#include "kronmult_xbatched.hpp"
+
 
 
 
@@ -20,13 +20,14 @@ void kronmult2_xbatched(
                        T* pX_[],
                        T* pY_[],
                        T* pW_[],
-                       int const batchCount)
+                       int const batchCount,
+		       int const subbatchCount = 0)
 //
 // conceptual shape of Aarray is  (ndim,batchCount)
 //
-// pX_[] is array of pointers to X[], each of size n^2
-// pY_[] is array of pointers to Y[], each of size n^2
-// pW_[] is array of pointers to Z[], each of size n^2
+// pX_[] is array of pointers to X[], each of size n^ndim
+// pY_[] is array of pointers to Y[], each of size n^ndim
+// pW_[] is array of pointers to Z[], each of size n^ndim
 //
 // Y is the output
 // X is the input (but may be modified)
@@ -34,45 +35,9 @@ void kronmult2_xbatched(
 //
 //
 {
-#ifdef USE_GPU
-        // -------------------------------------------
-        // note 1-based matlab convention for indexing
-        // -------------------------------------------
-        int const iz_start = blockIdx.x + 1;
-        int const iz_size =  gridDim.x;
-        assert( gridDim.y == 1);
-        assert( gridDim.z == 1);
-#else
-        int const iz_start = 1;
-        int const iz_size = 1;
-#endif
-
-	int const ndim = 2;
-
-        auto Aarray = [=] (int const i1,
-                           int const i2
-                           ) -> T const *const {
-                return( Aarray_[ indx2f(i1,i2,ndim ) ] );
-        };
-
-
-
-#ifndef USE_GPU
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-#endif
-        for(int ibatch=iz_start; ibatch <= batchCount; ibatch += iz_size) {
-                T* const Xp =  pX_[ (ibatch-1) ];
-                T* const Yp =  pY_[ (ibatch-1) ];
-                T* const Wp =  pW_[ (ibatch-1) ];
-
-                T const * const A1 = (Aarray(1,ibatch));
-                T const * const A2 = (Aarray(2,ibatch));
-                int const nvec = 1;
-                kronmult2( n, nvec, A1,A2,   Xp, Yp, Wp, lda );
-        };
-
+        int constexpr ndim = 2;
+	kronmult_xbatched<T,ndim>(
+			n, Aarray_, lda, pX_, pY_, pW_, batchCount, subbatchCount );
 }
 
 
