@@ -47,7 +47,7 @@ void kronmult6_pbatched(
 #endif
 
 
-        auto Aarray = [&] (int const i1,
+        auto Aarray = [=] (int const i1,
                            int const i2,
                            int const i3,
                            int const i4) -> T const & {
