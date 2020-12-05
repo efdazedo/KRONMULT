@@ -36,6 +36,16 @@ void kronmultx( int const n,
   //      X is (n^6 by nvec)
   // -----------------
   
+	auto pow = [=](int const x,
+		       int const d) -> int {
+		// compute x^d
+                assert( d >= 0);
+		int result = 1;
+		for(int i=0; i < d; i++) {
+			result *= x;
+		};
+		return(result);
+	};
       int const lda = (lda_in == 0) ? n : lda_in;
       int const n_to_ndim1 = pow(n,ndim-1);
       int const n_to_ndim = n * n_to_ndim1;
@@ -115,22 +125,44 @@ void kronmultx( int const n,
 
 
 
-template<typename T>
+template<>
 DEVICE_FUNCTION
 void kronmultx( int const n, 
                 int const nvec,
-                T   const A1_[],
-                T   const A2_[],
-                T   const A3_[],
-                T   const A4_[],
-                T   const A5_[],
-                T   const A6_[],
-                T   X_[],
-                T   Y_[],
-                T   W_[],
-	        int const lda_in = 0 )
+                double   const A1_[],
+                double   const A2_[],
+                double   const A3_[],
+                double   const A4_[],
+                double   const A5_[],
+                double   const A6_[],
+                double   X_[],
+                double   Y_[],
+                double   W_[],
+	        int const lda_in )
 {
-  kronmult1( n, nvec,
+  kronmult1<double>( n, nvec,
+          A1_, X_, Y_, W_, lda_in );
+}
+
+
+
+
+template<>
+DEVICE_FUNCTION
+void kronmultx( int const n, 
+                int const nvec,
+                float   const A1_[],
+                float   const A2_[],
+                float   const A3_[],
+                float   const A4_[],
+                float   const A5_[],
+                float   const A6_[],
+                float   X_[],
+                float   Y_[],
+                float   W_[],
+	        int const lda_in )
+{
+  kronmult1<float>( n, nvec,
           A1_, X_, Y_, W_, lda_in );
 }
 #endif
