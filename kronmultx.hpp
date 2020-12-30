@@ -6,6 +6,7 @@
 #include "kgemm_nt.hpp"
 #include "kronmult1.hpp"
 
+#include "kronmultv.hpp"
 
 
 
@@ -35,7 +36,24 @@ void kronmultx( int const n,
   // note A1 is n by n
   //      X is (n^6 by nvec)
   // -----------------
-  
+        int const lda = (lda_in == 0) ? n : lda_in;
+	int const m1 = n; int const n1 = n; int const  ld1 = lda;
+	int const m2 = n; int const n2 = n; int const  ld2 = lda;
+	int const m3 = n; int const n3 = n; int const  ld3 = lda;
+	int const m4 = n; int const n4 = n; int const  ld4 = lda;
+	int const m5 = n; int const n5 = n; int const  ld5 = lda;
+	int const m6 = n; int const n6 = n; int const  ld6 = lda;
+
+	kronmultv<T,ndim>(
+			m1,n1,A1_,ld1,
+			m2,n2,A2_,ld2,
+			m3,n3,A3_,ld3,
+			m4,n4,A4_,ld4,
+			m5,n5,A5_,ld5,
+			m6,n6,A6_,ld6,
+			nvec,
+			X_, Y_, W_ );
+#if (0) 
 	auto pow = [=](int const x,
 		       int const d) -> int {
 		// compute x^d
@@ -46,7 +64,6 @@ void kronmultx( int const n,
 		};
 		return(result);
 	};
-      int const lda = (lda_in == 0) ? n : lda_in;
       int const n_to_ndim1 = pow(n,ndim-1);
       int const n_to_ndim = n * n_to_ndim1;
   
@@ -120,7 +137,8 @@ void kronmultx( int const n,
                  A2_, A3_, A4_, A5_, A6_, A1_,
                  W_,  Y_,   X_, lda );
       }
-  
+#endif
+
 }
 
 
