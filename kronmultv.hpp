@@ -41,10 +41,18 @@ void kronmultv(
   //      or (m2*...*m6) * (m1*nvec)
   // -----------------
   
+   assert( (1 <= m1) && (1 <= n1) && (m1 <= ld1) );
+   assert( (1 <= m2) && (1 <= n2) && (m2 <= ld2) );
+   assert( (1 <= m3) && (1 <= n3) && (m3 <= ld3) );
+   assert( (1 <= m4) && (1 <= n4) && (m4 <= ld4) );
+   assert( (1 <= m5) && (1 <= n5) && (m5 <= ld5) );
+   assert( (1 <= m6) && (1 <= n6) && (m6 <= ld6) );
   
+
   
-      int const ldX = (n1*((n2*n3*n4*n5)*n6));
-      int const ldW = (   ((n2*n3*n4*n5)*n6)) * m1;
+      int const n26 = (n2*n3)*(n4*n5)*n6;
+      int const ldX = (n1*n26);
+      int const ldW = (   n26) * m1;
   
       auto X = [=] (int const i,
                     int const j) -> T& {
@@ -62,7 +70,7 @@ void kronmultv(
       for(int i=1; i <= nvec; i++) {
               T *Xi_ = &( X(1, i) );
               T *Wi_ = &( W(1, i) );
-              int const ldXi = (n2*n3*n4*n5);
+              int const ldXi = n26;
               int const ldWi = ldXi;
               // ----------------------------
               // Xi viewed as (n2*...*n6) by (n1) array
@@ -82,7 +90,7 @@ void kronmultv(
               // --------------------------------------------------------
               // Wi(1:(n2*...*n6), 1:m1) = Xi(1:(n2*...*n6), 1:n1) * transpose(A1(1:m1,1:n1))
               // --------------------------------------------------------
-              int const mm = (n2*n3*n4*n5*n6);
+              int const mm = n26;
               int const nn = m1;
               int const kk = n1;
               T const alpha = 1;
@@ -91,15 +99,20 @@ void kronmultv(
               T const * const  Ap = &(Xi(1,1));
               T const * const  Bp = A1_;
               T       * const  Cp = &(Wi(1,1));
+
+	      assert( Ap != nullptr );
+	      assert( Bp != nullptr );
+	      assert( Cp != nullptr );
   
-              int const ld1 = ldXi;
-              int const ld2 = ld1;
-              int const ld3 = ldWi;
+              int const ldAp = ldXi;
+              int const ldBp = ld1;
+              int const ldCp = ldWi;
+
   
               kgemm_nt( mm,nn,kk, 
-                        alpha, Ap, ld1,
-                               Bp, ld2,
-                        beta,  Cp, ld3 );
+                        alpha, Ap, ldAp,
+                               Bp, ldBp,
+                        beta,  Cp, ldCp );
       };
   
       int const next_nvec = nvec * m1;
@@ -139,6 +152,8 @@ void kronmultv(
 	      )
 {
 
+   assert( (1 <= m1) && (1 <= n1) && (m1 <= ld1) );
+
     // ---------------------------------------------------
     // Y(1:m1, 1:nvec ) += A1(1:m1, 1:n1) * X(1:n1, 1:nvec) 
     // ---------------------------------------------------
@@ -154,6 +169,10 @@ void kronmultv(
     double const * const Ap = &(A1_[0]);
     double const * const Bp = &(X_[0]);
     double       * const Cp = &(Y_[0]);
+
+    assert( Ap != nullptr );
+    assert( Bp != nullptr );
+    assert( Cp != nullptr );
 
     kgemm_nn( mm,nn,kk,
               alpha,  Ap, ldAp,
