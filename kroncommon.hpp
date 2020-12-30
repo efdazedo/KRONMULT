@@ -92,9 +92,14 @@ int indx3f( int const i1,
             int const n1,
             int const n2 )
 {
-    return(indx2f(i1,i2,n1) + 
+    bool const use_horners_rule = true;
+    if (use_horners_rule) {
+     return( ((i3-1)*n2 + (i2-1))*n1-1+i1 ); 
+    }
+    else {
+      return(indx2f(i1,i2,n1) + 
 	    ((i3)-1)*((n1)*(n2)) );
-    // return( ((i3-1)*n2 + (i2-1))*n1-1+i1 ); 
+    };
 }
 
 
@@ -109,9 +114,16 @@ int indx4f( int const i1,
             int const n2,
             int const n3 )
 {
-  return(indx3f(i1,i2,i3,n1,n2) + 
+  bool const use_horners_rule = true;
+  int ans = 0;
+  if (use_horners_rule) {
+    ans = ( (((i4-1)*n3 + (i3-1))*n2 + (i2-1))*n1 - 1 + i1 );
+    }
+  else {
+    ans = (indx3f(i1,i2,i3,n1,n2) + 
 	  ((i4)-1)*((n1)*(n2)*(n3)) );
-  //return( (((i4-1)*n3 + (i3-1))*n2 + (i2-1))*n1 - 1 + i1 );
+  };
+  return(ans);
 }
 
 
@@ -129,9 +141,16 @@ int indx5f( int const i1,
             int const n3,
             int const n4 ) 
 {
-	return( indx4f(i1,i2,i3,i4,  n1,n2,n3) + 
+  bool const use_horners_rule = true;
+  int ans = 0;
+  if (use_horners_rule) {
+         ans = ( ((((i5-1)*n4 + (i4-1))*n3 + (i3-1))*n2 + (i2-1))*n1 -1 + i1 );
+  }
+  else {
+	ans = ( indx4f(i1,i2,i3,i4,  n1,n2,n3) + 
 		  (i5-1)*(((n1*n2)*n3)*n4) );
-        // return( ((((i5-1)*n4 + (i4-1))*n3 + (i3-1))*n2 + (i2-1))*n1 -1 + i1 );
+  };
+  return(ans);
 
 }
         
@@ -151,9 +170,16 @@ int indx6f(int const i1,
            int const n4,
            int const n5)
 {
-	return( indx5f(i1,i2,i3,i4,i5, n1,n2,n3,n4) +
+  bool const use_horners_rule = true;
+  int ans = 0;
+  if (use_horners_rule) {
+        ans = ( (((((i6-1)*n5 + (i5-1))*n4 + (i4-1))*n3 + (i3-1))*n2 + (i2-1))*n1 -1 + i1);
+  }
+  else {
+	ans = ( indx5f(i1,i2,i3,i4,i5, n1,n2,n3,n4) +
 		(i6-1)*((((n1*n2)*n3)*n4)*n5) );
-        // return( (((((i6-1)*n5 + (i5-1))*n4 + (i4-1))*n3 + (i3-1))*n2 + (i2-1))*n1 -1 + i1);
+  };
+  return(ans);
 }
 
 
