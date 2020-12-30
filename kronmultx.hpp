@@ -141,6 +141,7 @@ void kronmultx( int const n,
 
 }
 
+#if (0)
 
 
 template<>
@@ -183,4 +184,8 @@ void kronmultx( int const n,
   kronmult1<float>( n, nvec,
           A1_, X_, Y_, W_, lda_in );
 }
+#endif
+
+
+
 #endif

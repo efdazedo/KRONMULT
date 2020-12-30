@@ -34,10 +34,12 @@ void kronmultv(
 {
   // -----------------
   // note A1 is m1 by n1
-  //      X is (n1*...*n6) by nvec or
-  //
+  //      X is (n1*...*n6) by nvec 
   //      or (n2*...*n6) by (n1*nvec)
-  //      W is (n2*...n6) by (m1*nvec)
+  //
+  //
+  //      W is (n2*...n6*m1) by nvec 
+  //      or   (n2*...n6) by (m1*nvec)
   //
   //      Y is (m1*...*m6) by nvec
   // -----------------
@@ -131,12 +133,13 @@ void kronmultv(
       // --------------------------------
       {
 	kronmultv<T,ndim-1>( 
-			n2,m2,A2_,ld2,
-			n3,m3,A3_,ld3,
-			n4,m4,A4_,ld4,
-			n5,m5,A5_,ld5,
-			n6,m6,A6_,ld6,
-			1, 1, nullptr,1,  // unused
+			m2,n2,A2_,ld2,
+			m3,n3,A3_,ld3,
+			m4,n4,A4_,ld4,
+			m5,n5,A5_,ld5,
+			m6,n6,A6_,ld6,
+                        m1,n1,A1_,ld1, // unused
+			// 1, 1, nullptr,1,  // unused
 			next_nvec,
 			W_, Y_, X_ );
       }
@@ -173,7 +176,7 @@ void kronmultv(
     double const beta = 1;
     int const ldAp = ld1;
     int const ldBp = n1;
-    int const ldCp = ld1;
+    int const ldCp = m1;
 
     double const * const Ap = &(A1_[0]);
     double const * const Bp = &(X_[0]);
@@ -219,7 +222,7 @@ void kronmultv(
     float const beta = 1;
     int const ldAp = ld1;
     int const ldBp = n1;
-    int const ldCp = ld1;
+    int const ldCp = m1;
 
     float const * const Ap = &(A1_[0]);
     float const * const Bp = &(X_[0]);
