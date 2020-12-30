@@ -35,10 +35,11 @@ void kronmultv(
   // -----------------
   // note A1 is m1 by n1
   //      X is (n1*...*n6) by nvec or
-  //      or (n1*...*n5) by (n6*nvec)
-  //      W is (n2*...n6) by (n1*nvec)
+  //
+  //      or (n2*...*n6) by (n1*nvec)
+  //      W is (n2*...n6) by (m1*nvec)
+  //
   //      Y is (m1*...*m6) by nvec
-  //      or (m2*...*m6) * (m1*nvec)
   // -----------------
   
    assert( (1 <= m1) && (1 <= n1) && (m1 <= ld1) );
@@ -50,7 +51,15 @@ void kronmultv(
   
 
   
-      int const n26 = (n2*n3)*(n4*n5)*n6;
+      int const n26 = (ndim == 1) ? 1  :
+	              (ndim == 2) ? n2 :
+		      (ndim == 3) ? (n2*n3) :
+		      (ndim == 4) ? ((n2*n3)*n4) :
+		      (ndim == 5) ? ((n2*n3)*n4)*n5 :
+		      (ndim == 6) ? (((n2*n3)*n4)*n5)*n6 : 0;
+
+      assert(1 <= n26 );
+
       int const ldX = (n1*n26);
       int const ldW = (   n26) * m1;
   
@@ -97,7 +106,7 @@ void kronmultv(
               T const beta = 0;
   
               T const * const  Ap = &(Xi(1,1));
-              T const * const  Bp = A1_;
+              T const * const  Bp = &(A1_[0]);
               T       * const  Cp = &(Wi(1,1));
 
 	      assert( Ap != nullptr );
@@ -151,8 +160,8 @@ void kronmultv(
                double   W_[]
 	      )
 {
-
    assert( (1 <= m1) && (1 <= n1) && (m1 <= ld1) );
+   assert( (1 <= nvec) );
 
     // ---------------------------------------------------
     // Y(1:m1, 1:nvec ) += A1(1:m1, 1:n1) * X(1:n1, 1:nvec) 
@@ -198,6 +207,8 @@ void kronmultv(
 	      )
 {
 
+   assert( (1 <= m1) && (1 <= n1) && (m1 <= ld1) );
+   assert( (1 <= nvec) );
     // ---------------------------------------------------
     // Y(1:m1, 1:nvec ) += A1(1:m1, 1:n1) * X(1:n1, 1:nvec) 
     // ---------------------------------------------------
