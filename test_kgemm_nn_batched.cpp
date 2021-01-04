@@ -1,16 +1,17 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <cassert>
 #include <chrono>
-#include <unistd.h>
 #include <cmath>
 #include <limits>
 #include <algorithm>
 
 #ifdef USE_GPU
 #include <hip/hip_runtime.h>
-#else
-#include <stdlib.h>
-#include <string.h>
 #endif
 
 #include "kroncommon.hpp"
@@ -107,16 +108,35 @@ T test_kgemm_nn_batched( int const mm,
            ldC = wsize * (( nrowC + (wsize-1))/wsize );
         };
 
+#ifdef USE_VARRAY
         T *Aarray_[batchCount];
         T *Barray_[batchCount];
         T *Carray_[batchCount];
+#else
+	T **Aarray_ = (T **) malloc( sizeof(T*) * batchCount );
+	T **Barray_ = (T **) malloc( sizeof(T*) * batchCount );
+	T **Carray_ = (T **) malloc( sizeof(T*) * batchCount );
 
+	assert( Aarray_ != nullptr );
+	assert( Barray_ != nullptr );
+	assert( Carray_ != nullptr );
+#endif	
         // -------------
         // device arrays
         // -------------
+#ifdef USE_VARRAY
         T *hdAarray_[batchCount];
         T *hdBarray_[batchCount];
         T *hdCarray_[batchCount];
+#else
+	T **hdAarray_ = (T **) malloc( sizeof(T*) * batchCount );
+	T **hdBarray_ = (T **) malloc( sizeof(T*) * batchCount );
+	T **hdCarray_ = (T **) malloc( sizeof(T*) * batchCount );
+
+	assert( hdAarray_ != nullptr );
+	assert( hdBarray_ != nullptr );
+	assert( hdCarray_ != nullptr );
+#endif
 
         T **ddAarray_ = nullptr;
         T **ddBarray_ = nullptr;
@@ -275,9 +295,20 @@ T test_kgemm_nn_batched( int const mm,
         // --------------------------
         // setup ldA, ldB, ldC arrays
         // --------------------------
+#ifdef USE_VARRAY
         int ldAarray_[batchCount];
         int ldBarray_[batchCount];
         int ldCarray_[batchCount];
+#else
+	int *ldAarray_ = (int *) malloc( sizeof(int) * batchCount );
+	int *ldBarray_ = (int *) malloc( sizeof(int) * batchCount );
+	int *ldCarray_ = (int *) malloc( sizeof(int) * batchCount );
+
+	assert( ldAarray_ != nullptr );
+	assert( ldBarray_ != nullptr );
+	assert( ldCarray_ != nullptr );
+
+#endif
         for(int ibatch=0; ibatch < batchCount; ibatch++) {
                 ldAarray_[ibatch] = ldA;
                 ldBarray_[ibatch] = ldB;
@@ -472,9 +503,21 @@ T test_kgemm_nn_batched( int const mm,
 
         }
 
+#ifdef USE_VARRAY
+#else
+// clean up
+	free( Aarray_ );
+	free( Barray_ );
+	free( Carray_ );
 
+	free( hdAarray_ );
+	free( hdBarray_ );
+	free( hdCarray_ );
 
-
+	free( ldAarray_ );
+	free( ldBarray_ );
+	free( ldCarray_ );
+#endif
 
         return( max_abserr);
 }
