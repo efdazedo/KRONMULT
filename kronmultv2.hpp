@@ -19,8 +19,8 @@ void kronmultv2( int const m1, int const n1, T const A1_[], int const ld1,
                 int const nvec,
                 T   X_[],
                 T   Y_[],
-                T   W_[],
-	        int const lda_in = 0 )
+                T   W_[]
+	        )
 // -----------------
 // note A1 is m1 by n1
 //      A2 is m2 by n2
