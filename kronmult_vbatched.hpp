@@ -126,12 +126,6 @@ void kronmult_vbatched(
 		return(ans);
 	};
 
-	auto prod2 = [=](int const n,
-			int const * const arr_ ) -> int {
-		int const istart = 1;
-		int const iend = n;
-		return( prod( istart, iend, arr_ ) );
-	};
 
 	int sizeW = 0;
 	{

@@ -3,7 +3,7 @@
 
 #include "kroncommon.hpp"
 
-#include "kronmultx.hpp"
+#include "kronmultv.hpp"
 
 //  -------------------------------------------
 //  device function to evaluate
@@ -36,7 +36,7 @@ void kronmultv5( int const m1, int const n1, T const A1_[], int const ld1,
 {
     int constexpr ndim = 5;
     int const m6 = 1; int n6 = 1; T const * const A6_ = nullptr; int const ld6 = 1;
-    kronmultx<T,ndim>(
+    kronmultv<T,ndim>(
 		    m1,n1,A1_,ld1,
 		    m2,n2,A2_,ld2,
 		    m3,n3,A3_,ld3,
