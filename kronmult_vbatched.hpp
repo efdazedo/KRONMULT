@@ -3,12 +3,12 @@
 
 #include "kroncommon.hpp"
 
-#include "kronmult1.hpp"
-#include "kronmult2.hpp"
-#include "kronmult3.hpp"
-#include "kronmult4.hpp"
-#include "kronmult5.hpp"
-#include "kronmult6.hpp"
+#include "kronmultv1.hpp"
+#include "kronmultv2.hpp"
+#include "kronmultv3.hpp"
+#include "kronmultv4.hpp"
+#include "kronmultv5.hpp"
+#include "kronmultv6.hpp"
 
 
 
@@ -92,13 +92,7 @@ void kronmult_vbatched(
                 return( Aarray_[ indx2f(i1,i2,ndim ) ] );
         };
 
-	auto m = [=](int const idim) -> int {
-		return( m_[ (idim-1) ]);
-	};
 
-	auto n = [=](int const idim) -> int {
-		return( n_[ (idim-1) ]);
-	};
 
 
 
@@ -117,19 +111,9 @@ void kronmult_vbatched(
 	};
 
 
-	auto pow = [=](int const x,
-		       int const d) -> int {
-		// compute x^d
-                assert( d >= 0);
-		int result = 1;
-		for(int i=0; i < d; i++) {
-			result *= x;
-		};
-		return(result);
-	};
 
 
-	auto prod = [ ](int const istart, int const iend,
+	auto prod = [=](int const istart, int const iend,
 			int const * const arr_) -> int {
 		int ans = 1;
 		// -------------------------------------------
@@ -142,7 +126,7 @@ void kronmult_vbatched(
 		return(ans);
 	};
 
-	auto prod2 = [ ](int const n,
+	auto prod2 = [=](int const n,
 			int const * const arr_ ) -> int {
 		int const istart = 1;
 		int const iend = n;
