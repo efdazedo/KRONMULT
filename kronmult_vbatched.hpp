@@ -55,6 +55,7 @@ void kronmult_vbatched(
 //
 //
 {
+	int const idebug = 2;
 #ifdef USE_GPU
         // -------------------------------------------
         // note 1-based matlab convention for indexing
@@ -127,6 +128,7 @@ void kronmult_vbatched(
 	};
 
 
+
 	int sizeW = 0;
 	{
 		     // size of W is max of 
@@ -136,15 +138,40 @@ void kronmult_vbatched(
 		     // m(1)*m(2)..m(5)*n(6)
 		     // -------------------
 
-                     int isize = 0;
+	             if (idebug >= 2) {
+			int const ioff = -1;
+			printf("ndim=%d \n", ndim);
+			for(int idim=1; idim <= ndim; idim++) {
+				int const m_idim = m_[ioff + idim ];
+				int const n_idim = n_[ioff + idim ];
+				printf("idim=%d, m_idim=%d, n_idim=%d\n",
+                                        idim,    m_idim,    n_idim );
+			};
+		     };
+
+
+
+                     int isize = 1;
 		     for(int idim=1; idim <= (ndim-1); idim++) {
-			     isize = max( isize, prod(1,idim,m_)*prod(idim+1,ndim,n_));
+			     int const m_size = prod(1,idim,m_);
+			     int const n_size = prod( (idim+1), ndim, n_ );
+			     int const jsize = m_size * n_size;
+
+			     isize = max( isize, jsize );
+			     if (idebug >= 2) {
+				     printf("isize=%d idim=%d, m_size=%d, n_size=%d\n",
+				             isize,   idim,    m_size,    n_size );
+			     };
 		     };
 		     sizeW = isize;
 	};
 	int const sizeX = prod(1,ndim,n_);
 	int const sizeXW = max( sizeX, sizeW );
 	int const subbatchCount =  min( batchCount_in, (Wcapacity/(2*sizeXW) ));
+	if (idebug >= 1) {
+		printf("sizeX=%d, sizeW=%d, subbatchCount=%d Wcapacity=%ld\n",
+		        sizeX,    sizeW,    subbatchCount,   Wcapacity );
+	};
 	assert( subbatchCount >= 1 );
 
 

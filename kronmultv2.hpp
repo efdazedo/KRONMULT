@@ -30,10 +30,10 @@ void kronmultv2( int const m1, int const n1, T const A1_[], int const ld1,
 // -----------------
 {
     int constexpr ndim = 2;
-    int const m3 = 1; int n3 = 1; T const * const A3_ = nullptr; int const ld3 = 1;
-    int const m4 = 1; int n4 = 1; T const * const A4_ = nullptr; int const ld4 = 1;
-    int const m5 = 1; int n5 = 1; T const * const A5_ = nullptr; int const ld5 = 1;
-    int const m6 = 1; int n6 = 1; T const * const A6_ = nullptr; int const ld6 = 1;
+    int const m3 = 1; int const n3 = 1; T const * const A3_ = nullptr; int const ld3 = 1;
+    int const m4 = 1; int const n4 = 1; T const * const A4_ = nullptr; int const ld4 = 1;
+    int const m5 = 1; int const n5 = 1; T const * const A5_ = nullptr; int const ld5 = 1;
+    int const m6 = 1; int const n6 = 1; T const * const A6_ = nullptr; int const ld6 = 1;
     kronmultv<T,ndim>(
 		    m1,n1,A1_,ld1,
 		    m2,n2,A2_,ld2,

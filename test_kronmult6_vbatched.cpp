@@ -75,7 +75,7 @@ double test_kronmult_vbatched(  int const idim,
                           int const idebug = 0, 
                           bool const do_check  = true,
                           bool const use_overlap_in_Y = true,
-	                  size_t Wcapacity = 1024*1024*1024	)
+	                  size_t Wcapacity_in = 0	)
         
 {
 
@@ -97,6 +97,10 @@ double test_kronmult_vbatched(  int const idim,
 	size_t const Aarray_nbytes = sizeof(T)*lda*n*idim*batchCount;
 	size_t const Aparray_nbytes = sizeof(T*) * idim * batchCount;
 
+	size_t const Wcapacity_default = 1024 * 1024 * 1024;
+	size_t const Wcapacity = (Wcapacity_in == 0) ? Wcapacity_default: Wcapacity_in;
+	size_t const Zcapacity = sizeof(T)*Xsize * batchCount;
+
         T *Aarray_   = (T *)  malloc( Aarray_nbytes );
         T **Aparray_ = (T **) malloc( Aparray_nbytes );
 
@@ -104,8 +108,8 @@ double test_kronmult_vbatched(  int const idim,
         T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
         T *Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
 
-        T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Warray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        T *Zarray_ = (T *) malloc( Zcapacity );
+        T *Warray_ = (T *) malloc( Wcapacity );
 
         assert( Aarray_ != nullptr );
         assert( Aparray_ != nullptr );
@@ -121,13 +125,11 @@ double test_kronmult_vbatched(  int const idim,
         T *dAarray_   = (T *)  myalloc( Aarray_nbytes );
 	T **dAparray_ = (T **) myalloc( Aparray_nbytes );
 
-	size_t const Wcapcity = 1024*1024*1024;
-	size_t const Zcapcity = sizeof(T)*Xsize * batchCount;
 
         T *dXarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dZarray_ = (T *) myalloc( Zcapcity );
         T *dYarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dWarray_ = (T *) myalloc( Wcapcity );
+        T *dWarray_ = (T *) myalloc( Wcapacity );
+        T *dZarray_ = (T *) myalloc( Zcapacity );
 
         assert( dAarray_  != nullptr );
         assert( dAparray_ != nullptr );
@@ -766,6 +768,6 @@ int main()
   double const stol = 10.0/(1000.0 * 1000.0);
   double const dtol = 300.0/(1000.0 * 1000.0 *1000.0);
   main_func<double>( dtol );
-  main_func<float>( stol );
+  // main_func<float>( stol );
 }
 
