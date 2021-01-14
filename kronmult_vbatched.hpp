@@ -144,8 +144,8 @@ void kronmult_vbatched(
 			for(int idim=1; idim <= ndim; idim++) {
 				int const m_idim = m_[ioff + idim ];
 				int const n_idim = n_[ioff + idim ];
-				printf("idim=%d, m_idim=%d, n_idim=%d\n",
-                                        idim,    m_idim,    n_idim );
+				printf("m(%d)=%d, n(%d)=%d\n",
+                                        idim,m_idim,    idim,n_idim );
 			};
 		     };
 
