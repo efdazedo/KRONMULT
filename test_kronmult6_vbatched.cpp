@@ -72,10 +72,10 @@ void myfree( void * devPtr ) {
 template<typename T, typename Tc=double>
 double test_kronmult_vbatched(  int const idim,
                           int const n, int const batchCount, 
-                          int const idebug = 0, 
+                          int const idebug = 1, 
                           bool const do_check  = true,
-                          bool const use_overlap_in_Y = true,
-	                  size_t Wcapacity_in = 0	)
+                          bool const use_overlap_in_Y = false,
+	                  size_t Wcapacity_bytes_in = 0	)
         
 {
 
@@ -92,24 +92,26 @@ double test_kronmult_vbatched(  int const idim,
         // Warray is (n^idim by batchCount)
         // ----------------------------
 
-        int const Xsize = std::pow(n,idim);
+        size_t const Xsize = std::pow(n,idim);
+	size_t const Ysize = std::pow(n,idim);
+	size_t const Wsize = std::pow(n,idim);
 
-	size_t const Aarray_nbytes = sizeof(T)*lda*n*idim*batchCount;
+	size_t const Aarray_nbytes = sizeof(T)*(lda*n)*idim*batchCount;
 	size_t const Aparray_nbytes = sizeof(T*) * idim * batchCount;
 
-	size_t const Wcapacity_default = 1024 * 1024 * 1024;
-	size_t const Wcapacity = (Wcapacity_in == 0) ? Wcapacity_default: Wcapacity_in;
-	size_t const Zcapacity = sizeof(T)*Xsize * batchCount;
+	size_t const Wcapacity_bytes_default = 1024 * 1024 * 1024;
+	size_t const Wcapacity_bytes = (Wcapacity_bytes_in == 0) ? Wcapacity_bytes_default: Wcapacity_bytes_in;
 
         T *Aarray_   = (T *)  malloc( Aarray_nbytes );
         T **Aparray_ = (T **) malloc( Aparray_nbytes );
 
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
 
-        T *Zarray_ = (T *) malloc( Zcapacity );
-        T *Warray_ = (T *) malloc( Wcapacity );
+        T *Yarray_ = (T *) malloc( sizeof(T)*Ysize * batchCount);
+        T *Y2array_ = (T *) malloc( sizeof(T)*Ysize * batchCount);
+
+        T *Warray_ = (T *) malloc( Wcapacity_bytes );
 
         assert( Aarray_ != nullptr );
         assert( Aparray_ != nullptr );
@@ -127,9 +129,10 @@ double test_kronmult_vbatched(  int const idim,
 
 
         T *dXarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dYarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dWarray_ = (T *) myalloc( Wcapacity );
-        T *dZarray_ = (T *) myalloc( Zcapacity );
+        T *dZarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount);
+
+        T *dYarray_ = (T *) myalloc( sizeof(T)*Ysize * batchCount );
+        T *dWarray_ = (T *) myalloc( Wcapacity_bytes );
 
         assert( dAarray_  != nullptr );
         assert( dAparray_ != nullptr );
@@ -182,7 +185,7 @@ double test_kronmult_vbatched(  int const idim,
 
         auto Yarray = [&] (int const i, 
                            int const ibatch) -> T& {
-                return( Yarray_[ indx2f(i,ibatch,Xsize) ] );
+                return( Yarray_[ indx2f(i,ibatch,Ysize) ] );
         };
 
         auto Y2array = [&] (int const i, 
@@ -195,11 +198,12 @@ double test_kronmult_vbatched(  int const idim,
                 return( Zarray_[ indx2f(i,ibatch,Xsize) ] );
         };
 
+#if (0)
         auto Warray = [&] (int const i, 
                            int const ibatch) -> T& {
-                return( Warray_[ indx2f(i,ibatch,Xsize) ] );
+                return( Warray_[ indx2f(i,ibatch,Wsize) ] );
         };
-
+#endif
 
         auto dXarray = [&] (int const i, 
                            int const ibatch) -> T& {
@@ -208,7 +212,7 @@ double test_kronmult_vbatched(  int const idim,
 
         auto dYarray = [&] (int const i, 
                            int const ibatch) -> T& {
-                return( dYarray_[ indx2f(i,ibatch,Xsize) ] );
+                return( dYarray_[ indx2f(i,ibatch,Ysize) ] );
         };
 
         auto dZarray = [&] (int const i, 
@@ -240,7 +244,6 @@ double test_kronmult_vbatched(  int const idim,
               Xarray(i,ibatch) = r1/r2;
               Zarray(i,ibatch) = Xarray(i,ibatch);
               Yarray(i,ibatch) = 0;
-              Warray(i,ibatch) = 0;
               };
               };
 #ifdef _OPENMP
@@ -276,9 +279,11 @@ double test_kronmult_vbatched(  int const idim,
         host2gpu( dAparray_, Aparray_, Aparray_nbytes );
 
         host2gpu( dXarray_, Xarray_, sizeof(T)*Xsize*batchCount );
-        host2gpu( dYarray_, Yarray_, sizeof(T)*Xsize*batchCount );
         host2gpu( dZarray_, Zarray_, sizeof(T)*Xsize*batchCount );
-        host2gpu( dWarray_, Warray_, sizeof(T)*Xsize*batchCount );
+        host2gpu( dYarray_, Yarray_, sizeof(T)*Ysize*batchCount );
+
+	memset( Warray_, 0, Wcapacity_bytes );
+        host2gpu( dWarray_, Warray_, Wcapacity_bytes );
 
         for(int ibatch=1; ibatch <= batchCount;  ibatch++) {
                 pdXarray_[ (ibatch-1) ] = &(dXarray(1,ibatch));
@@ -330,7 +335,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_, 
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
         case 2:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,2>), dim3(batchCount), dim3(nthreads ), 0, 0,  
@@ -339,7 +344,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
         case 3:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,3>), dim3(batchCount), dim3(nthreads ), 0, 0,  
@@ -348,7 +353,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
         case 4:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,4>), dim3(batchCount), dim3(nthreads ), 0, 0,  
@@ -357,7 +362,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
         case 5:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,5>), dim3(batchCount), dim3(nthreads ), 0, 0,  
@@ -366,7 +371,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
         case 6:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,6>), dim3(batchCount), dim3(nthreads ), 0, 0,  
@@ -375,7 +380,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
          default: 
@@ -401,7 +406,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
 
@@ -410,7 +415,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
 
@@ -419,7 +424,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
 
@@ -428,7 +433,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
 
@@ -437,7 +442,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
 
@@ -447,7 +452,7 @@ double test_kronmult_vbatched(  int const idim,
                            dpdZarray_,
                            dpdYarray_,
                            dWarray_,
-			   Wcapacity,
+			   Wcapacity_bytes,
                            batchCount );
             break;
 
@@ -470,7 +475,7 @@ double test_kronmult_vbatched(  int const idim,
         // copy from gpu to host
         // interface is gpu2host( dest, src, nbytes )
         // ------------------------------------------
-        gpu2host( Yarray_, dYarray_,  sizeof(T)*Xsize*batchCount);
+        gpu2host( Yarray_, dYarray_,  sizeof(T)*Ysize*batchCount);
 
 
 
@@ -765,9 +770,10 @@ int main_func( double const tol) {
 
 int main()
 {
-  double const stol = 10.0/(1000.0 * 1000.0);
   double const dtol = 300.0/(1000.0 * 1000.0 *1000.0);
   main_func<double>( dtol );
+
+  // double const stol = 10.0/(1000.0 * 1000.0);
   // main_func<float>( stol );
 }
 

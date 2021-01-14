@@ -25,7 +25,7 @@ void kronmult_vbatched(
                        T* pX_[],
                        T* pY_[],
                        T* W_,
-		       size_t const Wcapacity,
+		       size_t const Wcapacity_bytes,
                        int const batchCount_in
 		       )
 //
@@ -159,18 +159,18 @@ void kronmult_vbatched(
 
 			     isize = max( isize, jsize );
 			     if (idebug >= 2) {
-				     printf("isize=%d idim=%d, m_size=%d, n_size=%d\n",
-				             isize,   idim,    m_size,    n_size );
+				     printf("isize=%d idim=%d, m_size=%d, n_size=%d jsize=%d\n",
+				             isize,   idim,    m_size,    n_size,   jsize );
 			     };
 		     };
 		     sizeW = isize;
 	};
 	int const sizeX = prod(1,ndim,n_);
 	int const sizeXW = max( sizeX, sizeW );
-	int const subbatchCount =  min( batchCount_in, (Wcapacity/(2*sizeXW) ));
+	int const subbatchCount =  max(1,min( batchCount_in, (Wcapacity_bytes/(2*sizeXW*sizeof(T)) )));
 	if (idebug >= 1) {
-		printf("sizeX=%d, sizeW=%d, subbatchCount=%d Wcapacity=%ld\n",
-		        sizeX,    sizeW,    subbatchCount,   Wcapacity );
+		printf("sizeX=%d, sizeW=%d, subbatchCount=%d Wcapacity_bytes=%ld\n",
+		        sizeX,    sizeW,    subbatchCount,   Wcapacity_bytes );
 	};
 	assert( subbatchCount >= 1 );
 
