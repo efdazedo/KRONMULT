@@ -44,12 +44,12 @@ void kronmultv(
   //      Y is (m1*...*m6) by nvec
   // -----------------
   
-   assert( (1 <= m1) && (1 <= n1) && (m1 <= ld1) );
-   assert( (1 <= m2) && (1 <= n2) && (m2 <= ld2) );
-   assert( (1 <= m3) && (1 <= n3) && (m3 <= ld3) );
-   assert( (1 <= m4) && (1 <= n4) && (m4 <= ld4) );
-   assert( (1 <= m5) && (1 <= n5) && (m5 <= ld5) );
-   assert( (1 <= m6) && (1 <= n6) && (m6 <= ld6) );
+   if (ndim >= 1) { assert(  (1 <= m1) && (1 <= n1) && (m1 <= ld1) ); };
+   if (ndim >= 2) { assert(  (1 <= m2) && (1 <= n2) && (m2 <= ld2) ); };
+   if (ndim >= 3) { assert(  (1 <= m3) && (1 <= n3) && (m3 <= ld3) ); };
+   if (ndim >= 4) { assert(  (1 <= m4) && (1 <= n4) && (m4 <= ld4) ); };
+   if (ndim >= 5) { assert(  (1 <= m5) && (1 <= n5) && (m5 <= ld5) ); };
+   if (ndim >= 6) { assert(  (1 <= m6) && (1 <= n6) && (m6 <= ld6) ); };
   
 
   
@@ -62,8 +62,8 @@ void kronmultv(
 
       assert(1 <= n26 );
 
-      int const ldX = (n1*n26);
-      int const ldW = (   n26) * m1;
+      int const ldX = (n26 * n1);
+      int const ldW = (n26 * m1);
   
       auto X = [=] (int const i,
                     int const j) -> T& {
@@ -138,8 +138,8 @@ void kronmultv(
 			m4,n4,A4_,ld4,
 			m5,n5,A5_,ld5,
 			m6,n6,A6_,ld6,
-                        m1,n1,A1_,ld1, // unused
-			// 1, 1, nullptr,1,  // unused
+                        // m1,n1,A1_,ld1, // unused
+			1, 1, nullptr,1,  // unused
 			next_nvec,
 			W_, Y_, X_ );
       }

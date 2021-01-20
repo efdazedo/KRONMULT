@@ -3,12 +3,12 @@
 
 #include "kroncommon.hpp"
 
-#include "kronmult1.hpp"
-#include "kronmult2.hpp"
-#include "kronmult3.hpp"
-#include "kronmult4.hpp"
-#include "kronmult5.hpp"
-#include "kronmult6.hpp"
+#include "kronmultv1.hpp"
+#include "kronmultv2.hpp"
+#include "kronmultv3.hpp"
+#include "kronmultv4.hpp"
+#include "kronmultv5.hpp"
+#include "kronmultv6.hpp"
 
 
 
@@ -25,7 +25,7 @@ void kronmult_vbatched(
                        T* pX_[],
                        T* pY_[],
                        T* W_,
-		       size_t const Wcapacity,
+		       size_t const Wcapacity_bytes,
                        int const batchCount_in
 		       )
 //
@@ -55,6 +55,7 @@ void kronmult_vbatched(
 //
 //
 {
+	int const idebug = 2;
 #ifdef USE_GPU
         // -------------------------------------------
         // note 1-based matlab convention for indexing
@@ -85,7 +86,6 @@ void kronmult_vbatched(
 	};
 
 
-        assert( subbatchCount >= 1);
 
         auto Aarray = [=] (int const i1,
                            int const i2
@@ -93,13 +93,7 @@ void kronmult_vbatched(
                 return( Aarray_[ indx2f(i1,i2,ndim ) ] );
         };
 
-	auto m = [=](int const idim) -> int {
-		return( m_[ (idim-1) ]);
-	};
 
-	auto n = [=](int const idim) -> int {
-		return( n_[ (idim-1) ]);
-	};
 
 
 
@@ -118,19 +112,9 @@ void kronmult_vbatched(
 	};
 
 
-	auto pow = [=](int const x,
-		       int const d) -> int {
-		// compute x^d
-                assert( d >= 0);
-		int result = 1;
-		for(int i=0; i < d; i++) {
-			result *= x;
-		};
-		return(result);
-	};
 
 
-	auto prod = [ ](int const istart, int const iend,
+	auto prod = [=](int const istart, int const iend,
 			int const * const arr_) -> int {
 		int ans = 1;
 		// -------------------------------------------
@@ -143,12 +127,7 @@ void kronmult_vbatched(
 		return(ans);
 	};
 
-	auto prod = [ ](int const n,
-			int const * const arr_ ) -> int {
-		int const istart = 1;
-		int const iend = n;
-		return( prod( istart, iend, arr_ ) );
-	};
+
 
 	int sizeW = 0;
 	{
@@ -159,15 +138,40 @@ void kronmult_vbatched(
 		     // m(1)*m(2)..m(5)*n(6)
 		     // -------------------
 
-                     int isize = 0;
+	             if (idebug >= 2) {
+			int const ioff = -1;
+			printf("ndim=%d \n", ndim);
+			for(int idim=1; idim <= ndim; idim++) {
+				int const m_idim = m_[ioff + idim ];
+				int const n_idim = n_[ioff + idim ];
+				printf("m(%d)=%d, n(%d)=%d\n",
+                                        idim,m_idim,    idim,n_idim );
+			};
+		     };
+
+
+
+                     int isize = 1;
 		     for(int idim=1; idim <= (ndim-1); idim++) {
-			     isize = max( isize, prod(1,idim,m_)*prod(idim+1,ndim,n_);
+			     int const m_size = prod(1,idim,m_);
+			     int const n_size = prod( (idim+1), ndim, n_ );
+			     int const jsize = m_size * n_size;
+
+			     isize = max( isize, jsize );
+			     if (idebug >= 2) {
+				     printf("isize=%d idim=%d, m_size=%d, n_size=%d jsize=%d\n",
+				             isize,   idim,    m_size,    n_size,   jsize );
+			     };
 		     };
 		     sizeW = isize;
 	};
 	int const sizeX = prod(1,ndim,n_);
 	int const sizeXW = max( sizeX, sizeW );
-	int const subbatchCount =  min( batchCount_in, (Wcapacity/(2*sizeXW) ));
+	int const subbatchCount =  max(1,min( batchCount_in, (Wcapacity_bytes/(2*sizeXW*sizeof(T)) )));
+	if (idebug >= 1) {
+		printf("sizeX=%d, sizeW=%d, subbatchCount=%d Wcapacity_bytes=%ld\n",
+		        sizeX,    sizeW,    subbatchCount,   Wcapacity_bytes );
+	};
 	assert( subbatchCount >= 1 );
 
 
@@ -210,36 +214,59 @@ void kronmult_vbatched(
                 T const * const A5 = (ndim >= 5) ? (Aarray(5,ibatch)) : nullptr;
                 T const * const A6 = (ndim >= 6) ? (Aarray(6,ibatch)) : nullptr;
 
+
+		int const ioff = -1;
+		int const m1 = (ndim >= 1) ? m_[ioff + 1] : 1;
+		int const m2 = (ndim >= 2) ? m_[ioff + 2] : 1;
+		int const m3 = (ndim >= 3) ? m_[ioff + 3] : 1;
+		int const m4 = (ndim >= 4) ? m_[ioff + 4] : 1;
+		int const m5 = (ndim >= 5) ? m_[ioff + 5] : 1;
+		int const m6 = (ndim >= 6) ? m_[ioff + 6] : 1;
+
+		int const n1 = (ndim >= 1) ? n_[ioff + 1] : 1;
+		int const n2 = (ndim >= 2) ? n_[ioff + 2] : 1;
+		int const n3 = (ndim >= 3) ? n_[ioff + 3] : 1;
+		int const n4 = (ndim >= 4) ? n_[ioff + 4] : 1;
+		int const n5 = (ndim >= 5) ? n_[ioff + 5] : 1;
+		int const n6 = (ndim >= 6) ? n_[ioff + 6] : 1;
+
+		int const ld1 = m1;
+		int const ld2 = m2;
+		int const ld3 = m3;
+		int const ld4 = m4;
+		int const ld5 = m5;
+		int const ld6 = m6;
+
                 int const nvec = 1;
 		switch(ndim)
                 {
-		case 1: {kronmultv1( m1,n1,A1,                
-				     nvec, Xp, Yp, Wp, lda); break;}
-		case 2: {kronmultv2( m1,n1,A1,
-				     m2,n2,A2,                
-				     nvec, Xp, Yp, Wp, lda); break;}
-		case 3: {kronmultv3( m1,n1,A1,
-				     m2,n2,A2,                
-				     m3,n3,A3,                
-				     nvec, Xp, Yp, Wp, lda); break;}
-		case 4: {kronmultv4( m1,n1,A1,
-				     m2,n2,A2,                
-				     m3,n3,A3,                
-				     m4,n4,A4,                
-				     nvec, Xp, Yp, Wp, lda); break;}
-		case 5: {kronmultv5( m1,n1,A1,
-				     m2,n2,A2,                
-				     m3,n3,A3,                
-				     m4,n4,A4,                
-				     m5,n5,A5,                
-				     nvec, Xp, Yp, Wp, lda); break;}
-		case 6: {kronmultv6( m1,n1,A1,
-				     m2,n2,A2,                
-				     m3,n3,A3,                
-				     m4,n4,A4,                
-				     m5,n5,A5,                
-				     m6,n6,A6,                
-				     nvec, Xp, Yp, Wp, lda); break;}
+		case 1: {kronmultv1( m1,n1,A1,ld1,                
+				     nvec, Xp, Yp, Wp ); break;}
+		case 2: {kronmultv2( m1,n1,A1,ld1,
+				     m2,n2,A2,ld2,                
+				     nvec, Xp, Yp, Wp ); break;}
+		case 3: {kronmultv3( m1,n1,A1,ld1,
+				     m2,n2,A2,ld2,                
+				     m3,n3,A3,ld3,                
+				     nvec, Xp, Yp, Wp ); break;}
+		case 4: {kronmultv4( m1,n1,A1,ld1,
+				     m2,n2,A2,ld2,                
+				     m3,n3,A3,ld3,                
+				     m4,n4,A4,ld4,                
+				     nvec, Xp, Yp, Wp ); break;}
+		case 5: {kronmultv5( m1,n1,A1,ld1,
+				     m2,n2,A2,ld2,                
+				     m3,n3,A3,ld3,                
+				     m4,n4,A4,ld4,                
+				     m5,n5,A5,ld5,                
+				     nvec, Xp, Yp, Wp ); break;}
+		case 6: {kronmultv6( m1,n1,A1,ld1,
+				     m2,n2,A2,ld2,                
+				     m3,n3,A3,ld3,                
+				     m4,n4,A4,ld4,                
+				     m5,n5,A5,ld5,                
+				     m6,n6,A6,ld6,                
+				     nvec, Xp, Yp, Wp ); break;}
                 default: { assert( false ); }
 		};
         }; // for iz
