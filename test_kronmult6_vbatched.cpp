@@ -120,7 +120,7 @@ double test_kronmult_vbatched(  int const idim,
 	  int mmax = 0;
 	  for(int i=0; i < idim; i++) { 
 		nmax = std::max(nmax, n_array[i] );
-		mmax = std::max(mmax,m_array[i]);
+		mmax = std::max(mmax, m_array[i]);
 	  };
 	  n = std::max( nmax, mmax );
 	};
@@ -733,23 +733,42 @@ int main_func( double const tol) {
 
         int const idebug = 0;
 
-        int batch_table[] = {1,16,128};
+        int batch_table[] = {1};
         int const size_batch_table = sizeof(batch_table)/sizeof(batch_table[0]);
 
-        int n_table[] = {1, 2, 3, 4 };
-        int const size_n_table = sizeof(n_table)/sizeof(n_table[0]);
 
 
         int nerrors = 0;
+	int const mmax = 2;
+	int const nmax = 2;
 
         for (int idim =1; idim <= 6; idim++) {
         for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
-        for (int in_table = 0;  in_table < size_n_table; in_table++) {
-                int const n = n_table[in_table];
-                int const batchCount = batch_table[ibatch_table];
+	  int const batchCount = batch_table[ibatch_table];
 
-		int const m_array[] = {n,n,n,n,n,n};
-		int const n_array[] = {n,n,n,n,n,n};
+          int const m1max = (idim >= 1) ? mmax : 1; int const n1max = (idim >= 1) ? nmax : 1;
+          int const m2max = (idim >= 2) ? mmax : 1; int const n2max = (idim >= 2) ? nmax : 1;
+          int const m3max = (idim >= 3) ? mmax : 1; int const n3max = (idim >= 3) ? nmax : 1;
+          int const m4max = (idim >= 4) ? mmax : 1; int const n4max = (idim >= 4) ? nmax : 1;
+          int const m5max = (idim >= 5) ? mmax : 1; int const n5max = (idim >= 5) ? nmax : 1;
+          int const m6max = (idim >= 6) ? mmax : 1; int const n6max = (idim >= 6) ? nmax : 1;
+
+	  for(int m1=1; m1 <= m1max; m1++)
+	  for(int m2=1; m2 <= m2max; m2++)
+	  for(int m3=1; m3 <= m3max; m3++)
+	  for(int m4=1; m4 <= m4max; m4++)
+	  for(int m5=1; m5 <= m5max; m5++)
+	  for(int m6=1; m6 <= m6max; m6++)
+
+	  for(int n1=1; n1 <= n1max; n1++)
+	  for(int n2=1; n2 <= n2max; n2++)
+	  for(int n3=1; n3 <= n3max; n3++)
+	  for(int n4=1; n4 <= n4max; n4++)
+	  for(int n5=1; n5 <= n5max; n5++)
+	  for(int n6=1; n6 <= n6max; n6++) {
+
+		int const m_array[] = {m1,m2,m3,m4,m5,m6};
+		int const n_array[] = {n1,n2,n3,n4,n5,n6};
 
                 double const max_abserr =  test_kronmult_vbatched<T>( idim, m_array,n_array, batchCount, idebug );
                 bool const isok = (max_abserr < tol);
@@ -759,11 +778,19 @@ int main_func( double const tol) {
 
                 if ((idebug >= 1) || (!isok)) {
                         std::cout << " idim = "  << idim
-                                  << " n = " << n 
+                                  << " m1,n1 " << m1 << "," << n1
+                                  << " m2,n2 " << m2 << "," << n2
+                                  << " m3,n3 " << m3 << "," << n3
+                                  << " m4,n4 " << m4 << "," << n4
+                                  << " m5,n5 " << m5 << "," << n5
+                                  << " m6,n6 " << m6 << "," << n6
                                   << " batchCount = " << batchCount
-                                  << " max_abserr= " << max_abserr << "\n";
+                                  << " max_abserr= " << max_abserr 
+				  << "\n";
                 };
-        };
+           };
+
+
         };
         };
 
