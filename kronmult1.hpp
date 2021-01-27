@@ -5,6 +5,10 @@
 
 #include "kgemm_nn.hpp"
 
+#ifdef USE_KRONMULTV
+#include "kronmultv1.hpp"
+#endif
+
 //  -------------------------------------------
 //  device function to evaluate
 //  Y = kron(A1)*X as
@@ -24,7 +28,15 @@ void kronmult1( int const n,
 //      X is (n by nvec)
 // -----------------
 {
-
+#ifdef USE_KRONMULTV
+	{
+	int const m1 = n;
+	int const n1 = n;
+	int const ld1 = (lda_in == 0)? n : lda_in;
+	kronmultv1<T>( m1,n1, A1_, ld1, nvec, X_, Y_, W_ );
+	return;
+	}
+#else
     // used to suppress warnings in unused variables
     auto const ignore = [](T* ignored) { (void)ignored; };
     ignore(W_);
@@ -47,6 +59,7 @@ void kronmult1( int const n,
                       Bp, ld2,
               beta,   Cp, ld3 );
 
+#endif
 }
 
 
