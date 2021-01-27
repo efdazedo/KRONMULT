@@ -71,7 +71,9 @@ void myfree( void * devPtr ) {
 
 template<typename T, typename Tc=double>
 double test_kronmult_vbatched(  int const idim,
-                          int const n, int const batchCount, 
+                          int const m_array[], 
+			  int const n_array[],
+			  int const batchCount, 
                           int const idebug = 1, 
                           bool const do_check  = true,
                           bool const use_overlap_in_Y = false,
@@ -79,22 +81,52 @@ double test_kronmult_vbatched(  int const idim,
         
 {
 
-	int const lda = n + 3 ;
 
+	int const m1 = (idim >= 1) ? m_array[0] : 1; int const n1 = (idim >= 1) ? n_array[0] : 1;
+	int const m2 = (idim >= 2) ? m_array[1] : 1; int const n2 = (idim >= 2) ? n_array[1] : 1;
+	int const m3 = (idim >= 3) ? m_array[2] : 1; int const n3 = (idim >= 3) ? n_array[2] : 1;
+	int const m4 = (idim >= 4) ? m_array[3] : 1; int const n4 = (idim >= 4) ? n_array[3] : 1;
+	int const m5 = (idim >= 5) ? m_array[4] : 1; int const n5 = (idim >= 5) ? n_array[4] : 1;
+	int const m6 = (idim >= 6) ? m_array[5] : 1; int const n6 = (idim >= 6) ? n_array[5] : 1;
+
+	int const ld1 = m1;
+	int const ld2 = m2;
+	int const ld3 = m3;
+	int const ld4 = m4;
+	int const ld5 = m5;
+	int const ld6 = m6;
 
 
         // -------------------------
         // Aarray is (lda,n,idim,batchCount)
 	// Aparray is (idim,batchCount)
-        // Xarray is (n^idim by batchCount)
-        // Yarray is (n^idim by batchCount)
-        // Zarray is (n^idim by batchCount)
-        // Warray is (n^idim by batchCount)
+        // Xarray is (n1*n2..*n6 by batchCount)
+        // Yarray is (m1*m2..*m6 by batchCount)
+        // Zarray is (m1*m2..*m6 by batchCount)
+        // Warray is (Wsize)
         // ----------------------------
 
-        size_t const Xsize = std::pow(n,idim);
-	size_t const Ysize = std::pow(n,idim);
-	size_t const Wsize = std::pow(n,idim);
+        size_t const Xsize = n1*n2*n3*n4*n5*n6;
+	size_t const Zsize = Xsize;
+	size_t const Ysize = m1*m2*m3*m4*m5*m6;
+
+	// ------------------
+	// compute n to be max
+	// just for simplicity
+	// ------------------
+	int n = 0;
+	{
+	  int nmax = 0;
+	  int mmax = 0;
+	  for(int i=0; i < idim; i++) { 
+		nmax = std::max(nmax, n_array[i] );
+		mmax = std::max(mmax,m_array[i]);
+	  };
+	  n = std::max( nmax, mmax );
+	};
+	int const lda = n;
+
+
 
 	size_t const Aarray_nbytes = sizeof(T)*(lda*n)*idim*batchCount;
 	size_t const Aparray_nbytes = sizeof(T*) * idim * batchCount;
@@ -106,7 +138,7 @@ double test_kronmult_vbatched(  int const idim,
         T **Aparray_ = (T **) malloc( Aparray_nbytes );
 
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        T *Zarray_ = (T *) malloc( sizeof(T)*Zsize * batchCount);
 
         T *Yarray_ = (T *) malloc( sizeof(T)*Ysize * batchCount);
         T *Y2array_ = (T *) malloc( sizeof(T)*Ysize * batchCount);
@@ -129,7 +161,7 @@ double test_kronmult_vbatched(  int const idim,
 
 
         T *dXarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dZarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount);
+        T *dZarray_ = (T *) myalloc( sizeof(T)*Zsize * batchCount);
 
         T *dYarray_ = (T *) myalloc( sizeof(T)*Ysize * batchCount );
         T *dWarray_ = (T *) myalloc( Wcapacity_bytes );
@@ -190,12 +222,12 @@ double test_kronmult_vbatched(  int const idim,
 
         auto Y2array = [&] (int const i, 
                            int const ibatch) -> T& {
-                return( Y2array_[ indx2f(i,ibatch,Xsize) ] );
+                return( Y2array_[ indx2f(i,ibatch,Ysize) ] );
         };
 
         auto Zarray = [&] (int const i, 
                            int const ibatch) -> T& {
-                return( Zarray_[ indx2f(i,ibatch,Xsize) ] );
+                return( Zarray_[ indx2f(i,ibatch,Zsize) ] );
         };
 
 #if (0)
@@ -217,7 +249,7 @@ double test_kronmult_vbatched(  int const idim,
 
         auto dZarray = [&] (int const i, 
                            int const ibatch) -> T& {
-                return( dZarray_[ indx2f(i,ibatch,Xsize) ] );
+                return( dZarray_[ indx2f(i,ibatch,Zsize) ] );
         };
 
         auto dWarray = [&] (int const i, 
@@ -234,7 +266,7 @@ double test_kronmult_vbatched(  int const idim,
         #pragma omp parallel for
 #endif
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
-        for(int i=1; i <= Xsize; i++) {
+          for(int i=1; i <= Xsize; i++) {
               T const r1 = (i + (ibatch-1)*Xsize );
               T const r2 = Xsize*batchCount;
 
@@ -243,9 +275,11 @@ double test_kronmult_vbatched(  int const idim,
               // --------------------------------
               Xarray(i,ibatch) = r1/r2;
               Zarray(i,ibatch) = Xarray(i,ibatch);
+              };
+	   for(int i=1; i <= Ysize; i++) {
               Yarray(i,ibatch) = 0;
-              };
-              };
+	   };
+         }; // for ibatch
 #ifdef _OPENMP
         #pragma omp parallel for 
 #endif
@@ -279,7 +313,7 @@ double test_kronmult_vbatched(  int const idim,
         host2gpu( dAparray_, Aparray_, Aparray_nbytes );
 
         host2gpu( dXarray_, Xarray_, sizeof(T)*Xsize*batchCount );
-        host2gpu( dZarray_, Zarray_, sizeof(T)*Xsize*batchCount );
+        host2gpu( dZarray_, Zarray_, sizeof(T)*Zsize*batchCount );
         host2gpu( dYarray_, Yarray_, sizeof(T)*Ysize*batchCount );
 
 	memset( Warray_, 0, Wcapacity_bytes );
@@ -308,16 +342,8 @@ double test_kronmult_vbatched(  int const idim,
 
         auto time_start = std::chrono::steady_clock::now();
 
-	int const m1 = (idim >= 1) ? n : 1; int const n1 = (idim >= 1) ? n : 1;
-	int const m2 = (idim >= 2) ? n : 1; int const n2 = (idim >= 2) ? n : 1;
-	int const m3 = (idim >= 3) ? n : 1; int const n3 = (idim >= 3) ? n : 1;
-	int const m4 = (idim >= 4) ? n : 1; int const n4 = (idim >= 4) ? n : 1;
-	int const m5 = (idim >= 5) ? n : 1; int const n5 = (idim >= 5) ? n : 1;
-	int const m6 = (idim >= 6) ? n : 1; int const n6 = (idim >= 6) ? n : 1;
-
-
-	int m_[6] = {m1,m2,m3,m4,m5,m6};
-	int n_[6] = {n1,n2,n3,n4,n5,n6};
+	int const m_[6] = {m1,m2,m3,m4,m5,m6};
+	int const n_[6] = {n1,n2,n3,n4,n5,n6};
 
 #ifdef USE_GPU
         {
@@ -503,13 +529,15 @@ double test_kronmult_vbatched(  int const idim,
         // -------------
 
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
-                T const * const A1_ = &(Aarray(1,1,1,ibatch));
-                T const * const A2_ = &(Aarray(1,1,2,ibatch));
-                T const * const A3_ = &(Aarray(1,1,3,ibatch));
-                T const * const A4_ = &(Aarray(1,1,4,ibatch));
-                T const * const A5_ = &(Aarray(1,1,5,ibatch));
-                T const * const A6_ = &(Aarray(1,1,6,ibatch));
+                T const * const A1_ = (idim >= 1) ? &(Aarray(1,1,1,ibatch)) : nullptr;
+                T const * const A2_ = (idim >= 2) ? &(Aarray(1,1,2,ibatch)) : nullptr;
+                T const * const A3_ = (idim >= 3) ? &(Aarray(1,1,3,ibatch)) : nullptr;
+                T const * const A4_ = (idim >= 4) ? &(Aarray(1,1,4,ibatch)) : nullptr;
+                T const * const A5_ = (idim >= 5) ? &(Aarray(1,1,5,ibatch)) : nullptr;
+                T const * const A6_ = (idim >= 6) ? &(Aarray(1,1,6,ibatch)) : nullptr;
+
                 T const * const X_ = &(Xarray(1,ibatch));
+
 
                 auto X = [&] (int const i) -> T const & {
                         return( X_[ (i)-1 ]);
@@ -517,48 +545,48 @@ double test_kronmult_vbatched(  int const idim,
 
                 auto A1 = [&](int const i,
                               int const j) -> T const & {
-                        return( A1_[ indx2f(i,j,lda) ] );
+                        return( A1_[ indx2f(i,j,ld1) ] );
                 };
 
                 auto A2 = [&](int const i,
                               int const j) -> T const & {
-                        return( A2_[ indx2f(i,j,lda) ] );
+                        return( A2_[ indx2f(i,j,ld2) ] );
                 };
 
                 auto A3 = [&](int const i,
                               int const j) -> T const & {
-                        return( A3_[ indx2f(i,j,lda) ] );
+                        return( A3_[ indx2f(i,j,ld3) ] );
                 };
 
                 auto A4 = [&](int const i,
                               int const j) -> T const & {
-                        return( A4_[ indx2f(i,j,lda) ] );
+                        return( A4_[ indx2f(i,j,ld4) ] );
                 };
 
                 auto A5 = [&](int const i,
                               int const j) -> T const & {
-                        return( A5_[ indx2f(i,j,lda) ] );
+                        return( A5_[ indx2f(i,j,ld5) ] );
                 };
 
                 auto A6 = [&](int const i,
                               int const j) -> T const & {
-                        return( A6_[ indx2f(i,j,lda) ] );
+                        return( A6_[ indx2f(i,j,ld6) ] );
                 };
 
 
-                int const max_i1 = (idim >= 1) ? n : 1;
-                int const max_i2 = (idim >= 2) ? n : 1;
-                int const max_i3 = (idim >= 3) ? n : 1;
-                int const max_i4 = (idim >= 4) ? n : 1;
-                int const max_i5 = (idim >= 5) ? n : 1;
-                int const max_i6 = (idim >= 6) ? n : 1;
+                int const max_i1 = (idim >= 1) ? m1 : 1;
+                int const max_i2 = (idim >= 2) ? m2 : 1;
+                int const max_i3 = (idim >= 3) ? m3 : 1;
+                int const max_i4 = (idim >= 4) ? m4 : 1;
+                int const max_i5 = (idim >= 5) ? m5 : 1;
+                int const max_i6 = (idim >= 6) ? m6 : 1;
 
-                int const max_j1 = (idim >= 1) ? n : 1;
-                int const max_j2 = (idim >= 2) ? n : 1;
-                int const max_j3 = (idim >= 3) ? n : 1;
-                int const max_j4 = (idim >= 4) ? n : 1;
-                int const max_j5 = (idim >= 5) ? n : 1;
-                int const max_j6 = (idim >= 6) ? n : 1;
+                int const max_j1 = (idim >= 1) ? n1 : 1;
+                int const max_j2 = (idim >= 2) ? n2 : 1;
+                int const max_j3 = (idim >= 3) ? n3 : 1;
+                int const max_j4 = (idim >= 4) ? n4 : 1;
+                int const max_j5 = (idim >= 5) ? n5 : 1;
+                int const max_j6 = (idim >= 6) ? n6 : 1;
 
 #ifdef _OPENMP
                 #pragma omp parallel for collapse(6)  
@@ -720,7 +748,10 @@ int main_func( double const tol) {
                 int const n = n_table[in_table];
                 int const batchCount = batch_table[ibatch_table];
 
-                double const max_abserr =  test_kronmult_vbatched<T>( idim, n, batchCount, idebug );
+		int const m_array[] = {n,n,n,n,n,n};
+		int const n_array[] = {n,n,n,n,n,n};
+
+                double const max_abserr =  test_kronmult_vbatched<T>( idim, m_array,n_array, batchCount, idebug );
                 bool const isok = (max_abserr < tol);
                 if (!isok) {
                         nerrors += 1;
@@ -754,8 +785,10 @@ int main_func( double const tol) {
                int const idim = 6;
 
 
-               for(int n=4; n <= 8; n++) {
-                test_kronmult_vbatched<T>(idim,n, batchCount, idebug, do_check );
+               for(int n=4; n <= 6; n++) {
+		int const m_array[] = {n,n,n,n,n,n};
+		int const n_array[] = {n,n,n,n,n,n};
+                test_kronmult_vbatched<T>(idim,m_array,n_array, batchCount, idebug, do_check );
                };
         };
 
@@ -773,7 +806,7 @@ int main()
   double const dtol = 300.0/(1000.0 * 1000.0 *1000.0);
   main_func<double>( dtol );
 
-  // double const stol = 10.0/(1000.0 * 1000.0);
-  // main_func<float>( stol );
+  double const stol = 10.0/(1000.0 * 1000.0);
+  main_func<float>( stol );
 }
 
