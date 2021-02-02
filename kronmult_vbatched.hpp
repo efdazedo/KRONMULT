@@ -55,7 +55,7 @@ void kronmult_vbatched(
 //
 //
 {
-	int const idebug = 2;
+	int const idebug = 0;
 #ifdef USE_GPU
         // -------------------------------------------
         // note 1-based matlab convention for indexing

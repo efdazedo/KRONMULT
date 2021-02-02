@@ -185,7 +185,37 @@ int indx6f(int const i1,
 
 
 
+double kron_flops( int const idim, int const m_array[], int const n_array[] ) {
+		int const m1 = (idim >= 1) ? m_array[0] : 1; 
+		int const m2 = (idim >= 2) ? m_array[1] : 1; 
+		int const m3 = (idim >= 3) ? m_array[2] : 1; 
+		int const m4 = (idim >= 4) ? m_array[3] : 1; 
+		int const m5 = (idim >= 5) ? m_array[4] : 1; 
+		int const m6 = (idim >= 6) ? m_array[5] : 1; 
 
+		int const n1 = (idim >= 1) ? n_array[0] : 1; 
+		int const n2 = (idim >= 2) ? n_array[1] : 1; 
+		int const n3 = (idim >= 3) ? n_array[2] : 1; 
+		int const n4 = (idim >= 4) ? n_array[3] : 1; 
+		int const n5 = (idim >= 5) ? n_array[4] : 1; 
+		int const n6 = (idim >= 6) ? n_array[5] : 1; 
+
+
+		if (idim == 1) {
+			// Y = A1 * X1
+			return( 2.0 * m1 * n1 );
+		};
+
+			// Y = kron(A1, ..., Ak) * X1
+			// Y = kron( A2, ..., Ak) * X1 * transpose(A1)
+			double const flops1 = 2.0*(n2*n3*n4*n5*n6) *n1* m1;
+
+			int const m_[6] = {m2,m3,m4,m5,m6,1};
+			int const n_[6] = {n2,n3,n4,n5,n6,1};
+			double const flops2 = kron_flops( idim-1, m_,n_);
+			int const nvec = m1;
+			return( flops1 + flops2*nvec );
+}
 
 
 #endif
