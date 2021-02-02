@@ -89,12 +89,6 @@ double test_kronmult_vbatched(  int const idim,
 	int const m5 = (idim >= 5) ? m_array[4] : 1; int const n5 = (idim >= 5) ? n_array[4] : 1;
 	int const m6 = (idim >= 6) ? m_array[5] : 1; int const n6 = (idim >= 6) ? n_array[5] : 1;
 
-	int const ld1 = m1;
-	int const ld2 = m2;
-	int const ld3 = m3;
-	int const ld4 = m4;
-	int const ld5 = m5;
-	int const ld6 = m6;
 
 
         // -------------------------
@@ -127,6 +121,12 @@ double test_kronmult_vbatched(  int const idim,
 	int const lda = n;
 
 
+	int const ld1 = m1;
+	int const ld2 = m2;
+	int const ld3 = m3;
+	int const ld4 = m4;
+	int const ld5 = m5;
+	int const ld6 = m6;
 
 	size_t const Aarray_nbytes = sizeof(T)*(lda*n)*idim*batchCount;
 	size_t const Aparray_nbytes = sizeof(T*) * idim * batchCount;
@@ -152,9 +152,21 @@ double test_kronmult_vbatched(  int const idim,
         assert( Yarray_ != nullptr );
         assert( Y2array_ != nullptr );
 
-
+	assert( Warray_ != nullptr );
         assert( Zarray_ != nullptr );
-        assert( Warray_ != nullptr );
+
+	memset( Aarray_,0,Aarray_nbytes);
+	memset( Aparray_,0,Aparray_nbytes);
+
+	memset( Xarray_,0,sizeof(T)*Xsize * batchCount);
+	memset( Zarray_,0,sizeof(T)*Zsize * batchCount);
+
+	memset( Yarray_,0,sizeof(T)*Ysize * batchCount);
+	memset( Y2array_,0,sizeof(T)*Ysize * batchCount);
+
+	memset( Warray_,0,Wcapacity_bytes);
+
+
 
         T *dAarray_   = (T *)  myalloc( Aarray_nbytes );
 	T **dAparray_ = (T **) myalloc( Aparray_nbytes );
@@ -178,6 +190,16 @@ double test_kronmult_vbatched(  int const idim,
         T** pdYarray_ = (T**) malloc( sizeof(T*) * batchCount );
         T** pdZarray_ = (T**) malloc( sizeof(T*) * batchCount );
         T** pdWarray_ = (T**) malloc( sizeof(T*) * batchCount );
+
+	assert( pdXarray_ != nullptr );
+	assert( pdYarray_ != nullptr );
+	assert( pdZarray_ != nullptr );
+	assert( pdWarray_ != nullptr );
+
+	memset( pdXarray_,0,sizeof(T*) * batchCount);
+	memset( pdYarray_,0,sizeof(T*) * batchCount);
+	memset( pdZarray_,0,sizeof(T*) * batchCount);
+	memset( pdWarray_,0,sizeof(T*) * batchCount);
 
         T** dpdXarray_ = (T**) myalloc( sizeof(T*) * batchCount );
         T** dpdZarray_ = (T**) myalloc( sizeof(T*) * batchCount );
@@ -505,9 +527,10 @@ double test_kronmult_vbatched(  int const idim,
 
 
 
+
         {
           double const giga = 1000.0*1000.0*1000.0;
-          double const flops = 12.0*(std::pow(n,(idim+1))) * batchCount;
+          double const flops = kron_flops(idim,m_array,n_array) * batchCount;
           double const gflops = flops/giga;
           double const gflops_per_sec = gflops  /elapsed_time_sec;
           if (flops > 0.01 * giga) {
@@ -651,7 +674,7 @@ double test_kronmult_vbatched(  int const idim,
                 };
           }; // end for ibatch
 
-                int const max_ic = std::pow( n, idim );
+                int const max_ic = n1*n2*n3*n4*n5*n6;
                 for(int ic=1; ic <= max_ic; ic++) { 
                    Tc Y_ic = 0;
                    Tc Yval = 0;
@@ -746,20 +769,37 @@ int main_func( double const tol) {
         for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
 	  int const batchCount = batch_table[ibatch_table];
 
-          int const m1max = (idim >= 1) ? mmax : 1; int const n1max = (idim >= 1) ? nmax : 1;
-          int const m2max = (idim >= 2) ? mmax : 1; int const n2max = (idim >= 2) ? nmax : 1;
-          int const m3max = (idim >= 3) ? mmax : 1; int const n3max = (idim >= 3) ? nmax : 1;
-          int const m4max = (idim >= 4) ? mmax : 1; int const n4max = (idim >= 4) ? nmax : 1;
-          int const m5max = (idim >= 5) ? mmax : 1; int const n5max = (idim >= 5) ? nmax : 1;
-          int const m6max = (idim >= 6) ? mmax : 1; int const n6max = (idim >= 6) ? nmax : 1;
+          int const m1max = (idim >= 1) ? mmax : 1; 
+          int const m2max = (idim >= 2) ? mmax : 1; 
+          int const m3max = (idim >= 3) ? mmax : 1; 
+          int const m4max = (idim >= 4) ? mmax : 1; 
+          int const m5max = (idim >= 5) ? mmax : 1; 
+          int const m6max = (idim >= 6) ? mmax : 1; 
+
+	  int const n1max = (idim >= 1) ? nmax : 1;
+	  int const n2max = (idim >= 2) ? nmax : 1;
+	  int const n3max = (idim >= 3) ? nmax : 1;
+	  int const n4max = (idim >= 4) ? nmax : 1;
+	  int const n5max = (idim >= 5) ? nmax : 1;
+	  int const n6max = (idim >= 6) ? nmax : 1;
+
 
 	  for(int m1=1; m1 <= m1max; m1++)
 	  for(int m2=1; m2 <= m2max; m2++)
 	  for(int m3=1; m3 <= m3max; m3++)
 	  for(int m4=1; m4 <= m4max; m4++)
 	  for(int m5=1; m5 <= m5max; m5++)
-	  for(int m6=1; m6 <= m6max; m6++)
-
+#ifdef EBUG
+	  for(int m6=1; m6 <= m6max; m6++) {
+		  int const n1 = m1;
+		  int const n2 = m2;
+		  int const n3 = m3;
+		  int const n4 = m4;
+		  int const n5 = m5;
+		  int const n6 = m6;
+#else
+	  for(int m6=1; m6 <= m6max; m6++)  
+		  
 	  for(int n1=1; n1 <= n1max; n1++)
 	  for(int n2=1; n2 <= n2max; n2++)
 	  for(int n3=1; n3 <= n3max; n3++)
@@ -767,8 +807,9 @@ int main_func( double const tol) {
 	  for(int n5=1; n5 <= n5max; n5++)
 	  for(int n6=1; n6 <= n6max; n6++) {
 
+#endif
 		int const m_array[] = {m1,m2,m3,m4,m5,m6};
-		int const n_array[] = {n1,n2,n3,n4,n5,n6};
+	        int const n_array[] = {m1,m2,m3,m4,m5,m6};
 
                 double const max_abserr =  test_kronmult_vbatched<T>( idim, m_array,n_array, batchCount, idebug );
                 bool const isok = (max_abserr < tol);
