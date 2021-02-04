@@ -364,8 +364,6 @@ double test_kronmult_vbatched(  int const idim,
 
         auto time_start = std::chrono::steady_clock::now();
 
-	int const m_[6] = {m1,m2,m3,m4,m5,m6};
-	int const n_[6] = {n1,n2,n3,n4,n5,n6};
 
 #ifdef USE_GPU
         {
@@ -378,7 +376,7 @@ double test_kronmult_vbatched(  int const idim,
         // --------------------------------------------
         switch(idim) { 
         case 1:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult1_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
-			   m_, n_, 
+			   m1,n1,
 			   dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -387,7 +385,8 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
         case 2:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult2_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
-                           m_, n_,
+                           m1,n1,
+			   m2,n2,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -396,7 +395,9 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
         case 3:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult3_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
-                           m_, n_,
+                           m1,n1,
+			   m2,n2,
+			   m3,n3,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -405,7 +406,10 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
         case 4:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult4_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
-                           m_, n_,
+                           m1, n1,
+                           m2, n3,
+                           m3, n3,
+                           m4, n4,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -414,7 +418,11 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
         case 5:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult5_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
-                           m_, n_,
+                           m1, n1,
+                           m2, n2,
+                           m3, n3,
+                           m4, n4,
+                           m5, n5,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -423,7 +431,12 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
         case 6:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult6_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
-                           m_, n_,
+                           m1, n1,
+                           m2, n2,
+                           m3, n3,
+                           m4, n4,
+                           m5, n5,
+                           m6, n6,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -454,7 +467,8 @@ double test_kronmult_vbatched(  int const idim,
         // note  the input Zarray will be over-written
         // --------------------------------------------
         switch(idim) { 
-        case 1:  kronmult_vbatched<T,1>( m_,n_,
+        case 1:  kronmult1_vbatched<T>( 
+		           m1, n1,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -463,7 +477,9 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
 
-        case 2:  kronmult_vbatched<T,2>( m_,n_,
+        case 2:  kronmult2_vbatched<T>( 
+		           m1, n1,
+		           m2, n2,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -472,7 +488,10 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
 
-	case 3: kronmult_vbatched<T,3>( m_,n_,
+	case 3: kronmult3_vbatched<T>( 
+		           m1, n1,
+		           m2, n2,
+		           m3, n3,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -481,7 +500,11 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
 
-	case 4: kronmult_vbatched<T,4>( m_,n_,
+	case 4: kronmult4_vbatched<T>( 
+		           m1, n1,
+		           m2, n2,
+		           m3, n3,
+		           m4, n4,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -490,7 +513,12 @@ double test_kronmult_vbatched(  int const idim,
                            batchCount );
             break;
 
-	case 5: kronmult_vbatched<T,5>( m_,n_,
+	case 5: kronmult5_vbatched<T>(
+		           m1, n1,
+		           m2, n2,
+		           m3, n3,
+		           m4, n4,
+		           m5, n5,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,
@@ -500,7 +528,13 @@ double test_kronmult_vbatched(  int const idim,
             break;
 
 
-	case 6: kronmult_vbatched<T,6>( m_,n_,
+	case 6: kronmult6_vbatched<T>( 
+		           m1, n1,
+		           m2, n2,
+		           m3, n3,
+		           m4, n4,
+		           m5, n5,
+		           m6, n6,
                            dAparray_, 
                            dpdZarray_,
                            dpdYarray_,

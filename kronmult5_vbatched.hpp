@@ -14,8 +14,11 @@
 template<typename T>
 GLOBAL_FUNCTION
 void kronmult5_vbatched(
-                       int const m[],
-		       int const n[],
+		       int const m1, int const n1,
+		       int const m2, int const n2,
+		       int const m3, int const n3,
+		       int const m4, int const n4,
+		       int const m5, int const n5,
                        T const * const Aarray_[],
                        T* pX_[],
                        T* pY_[],
@@ -38,8 +41,15 @@ void kronmult5_vbatched(
 //
 {
         int constexpr ndim = 5;
+	int const m6 = 1; int const n6 = 1;
 	kronmult_vbatched<T,ndim>(
-			m, n, Aarray_, pX_, pY_, W_, Wcapcity,batchCount );
+			m1, n1, 
+			m2, n2, 
+			m3, n3, 
+			m4, n4, 
+			m5, n5, 
+			m6, n6, 
+			Aarray_, pX_, pY_, W_, Wcapcity,batchCount );
 }
 
 

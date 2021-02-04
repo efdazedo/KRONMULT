@@ -19,9 +19,13 @@
 template<typename T,int ndim>
 DEVICE_FUNCTION
 void kronmult_vbatched(
-		       int const m_[],
-                       int const n_[],
-                       T const * const Aarray_[],
+		       int const m1_in, int const n1_in, 
+		       int const m2_in, int const n2_in, 
+		       int const m3_in, int const n3_in, 
+		       int const m4_in, int const n4_in, 
+		       int const m5_in, int const n5_in, 
+		       int const m6_in, int const n6_in, 
+		       T const * const Aarray_[],
                        T* pX_[],
                        T* pY_[],
                        T* W_,
@@ -30,8 +34,6 @@ void kronmult_vbatched(
 		       )
 //
 // conceptual shape of Aarray is  (ndim,batchCount)
-// conceptual shape of m_ is  ndim
-// conceptual shape of n_ is  ndim
 // A1 = Aarray(1,ibatch) is m(1) by n(1)
 // A2 = Aarray(2,ibatch) is m(2) by n(2)
 // ...
@@ -56,6 +58,13 @@ void kronmult_vbatched(
 //
 {
 	int const idebug = 0;
+
+	int const m1 = (ndim >= 1) ? m1_in : 1; int const n1 = (ndim >= 1) ? n1_in : 1;
+	int const m2 = (ndim >= 2) ? m2_in : 1; int const n2 = (ndim >= 2) ? n2_in : 1;
+	int const m3 = (ndim >= 3) ? m3_in : 1; int const n3 = (ndim >= 3) ? n3_in : 1;
+	int const m4 = (ndim >= 4) ? m4_in : 1; int const n4 = (ndim >= 4) ? n4_in : 1;
+	int const m5 = (ndim >= 5) ? m5_in : 1; int const n5 = (ndim >= 5) ? n5_in : 1;
+	int const m6 = (ndim >= 6) ? m6_in : 1; int const n6 = (ndim >= 6) ? n6_in : 1;
 #ifdef USE_GPU
         // -------------------------------------------
         // note 1-based matlab convention for indexing
@@ -114,59 +123,35 @@ void kronmult_vbatched(
 
 
 
-	auto prod = [=](int const istart, int const iend,
-			int const * const arr_) -> int {
-                assert( istart >= 1 );
-		int ans = 1;
-		// -------------------------------------------
-		// note starting index 1 and inclusive of iend
-		// prod( 1, 3, m_ ) is m[0] * m[1] * m[2]
-		// -------------------------------------------
-		for(int i=istart; i <= iend; i++) {
-			ans *= arr_[ (i-1)];
-		};
-		return(ans);
-	};
 
 
+     // -------------------
+     // size of W is max of 
+     // m(1)*n(2)..n(6)
+     // m(1)*m(2)*n(3)..n(6)
+     // ...
+     // m(1)*m(2)..m(5)*n(6)
+     // -------------------
+	int const n56    = n5 * n6;
+	int const n456   = n4 * n56;
+	int const n3456  = n3 * n456;
+	int const n23456 = n2 * n3456;
+	int sizeX = n1 * n23456;
 
-	int sizeW = 0;
-	{
-		     // size of W is max of 
-                     // m(1)*n(2)..n(6)*m(1)
-                     // m(1)*m(2)*n(3)..n(6)
-		     // ...
-		     // m(1)*m(2)..m(5)*n(6)
-		     // -------------------
+	int m12 = m1 * m2;
+	int m123 = m12 * m3;
+	int m1234 = m123 * m4;
+	int m12345 = m1234 * m5;
 
-	             if (idebug >= 2) {
-			int const ioff = -1;
-			printf("ndim=%d \n", ndim);
-			for(int idim=1; idim <= ndim; idim++) {
-				int const m_idim = m_[ioff + idim ];
-				int const n_idim = n_[ioff + idim ];
-				printf("m(%d)=%d, n(%d)=%d\n",
-                                        idim,m_idim,    idim,n_idim );
-			};
-		     };
+	int m1n6 = m1 * n23456;
+	int m2n6 = m12 * n3456;
+	int m3n6 = m123 * n456;
+	int m4n6 = m1234 * n56;
+	int m5n6 = m12345 * n6;
 
+        int const sizeW = max(  max( max(m1n6,m2n6), max(m3n6,m4n6)), m5n6);
+		     
 
-
-                     int isize = 1;
-		     for(int idim=1; idim <= (ndim-1); idim++) {
-			     int const m_size = prod(1,idim,m_);
-			     int const n_size = prod( (idim+1), ndim, n_ );
-			     int const jsize = m_size * n_size;
-
-			     isize = max( isize, jsize );
-			     if (idebug >= 2) {
-				     printf("isize=%d idim=%d, m_size=%d, n_size=%d jsize=%d\n",
-				             isize,   idim,    m_size,    n_size,   jsize );
-			     };
-		     };
-		     sizeW = isize;
-	};
-	int const sizeX = prod(1,ndim,n_);
 	int const sizeXW = max( sizeX, sizeW );
 	int const subbatchCount =  max(1,min( batchCount_in, (Wcapacity_bytes/(2*sizeXW*sizeof(T)) )));
 	if (idebug >= 1) {
@@ -216,20 +201,6 @@ void kronmult_vbatched(
                 T const * const A6 = (ndim >= 6) ? (Aarray(6,ibatch)) : nullptr;
 
 
-		int const ioff = -1;
-		int const m1 = (ndim >= 1) ? m_[ioff + 1] : 1;
-		int const m2 = (ndim >= 2) ? m_[ioff + 2] : 1;
-		int const m3 = (ndim >= 3) ? m_[ioff + 3] : 1;
-		int const m4 = (ndim >= 4) ? m_[ioff + 4] : 1;
-		int const m5 = (ndim >= 5) ? m_[ioff + 5] : 1;
-		int const m6 = (ndim >= 6) ? m_[ioff + 6] : 1;
-
-		int const n1 = (ndim >= 1) ? n_[ioff + 1] : 1;
-		int const n2 = (ndim >= 2) ? n_[ioff + 2] : 1;
-		int const n3 = (ndim >= 3) ? n_[ioff + 3] : 1;
-		int const n4 = (ndim >= 4) ? n_[ioff + 4] : 1;
-		int const n5 = (ndim >= 5) ? n_[ioff + 5] : 1;
-		int const n6 = (ndim >= 6) ? n_[ioff + 6] : 1;
 
 		int const ld1 = m1;
 		int const ld2 = m2;
