@@ -288,7 +288,7 @@ double test_kronmult_vbatched(  int const idim,
         #pragma omp parallel for
 #endif
         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
-          for(int i=1; i <= Xsize; i++) {
+          for(size_t i=1; i <= Xsize; i++) {
               T const r1 = (i + (ibatch-1)*Xsize );
               T const r2 = Xsize*batchCount;
 
@@ -298,7 +298,7 @@ double test_kronmult_vbatched(  int const idim,
               Xarray(i,ibatch) = r1/r2;
               Zarray(i,ibatch) = Xarray(i,ibatch);
               };
-	   for(int i=1; i <= Ysize; i++) {
+	   for(size_t i=1; i <= Ysize; i++) {
               Yarray(i,ibatch) = 0;
 	   };
          }; // for ibatch
@@ -407,7 +407,7 @@ double test_kronmult_vbatched(  int const idim,
             break;
         case 4:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult4_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
                            m1, n1,
-                           m2, n3,
+                           m2, n2,
                            m3, n3,
                            m4, n4,
                            dAparray_, 
