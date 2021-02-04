@@ -377,7 +377,7 @@ double test_kronmult_vbatched(  int const idim,
         // note  the input Zarray will be over-written
         // --------------------------------------------
         switch(idim) { 
-        case 1:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,1>), dim3(batchCount), dim3(nthreads ), 0, 0,  
+        case 1:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult1_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
 			   m_, n_, 
 			   dAparray_, 
                            dpdZarray_,
@@ -386,7 +386,7 @@ double test_kronmult_vbatched(  int const idim,
 			   Wcapacity_bytes,
                            batchCount );
             break;
-        case 2:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,2>), dim3(batchCount), dim3(nthreads ), 0, 0,  
+        case 2:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult2_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
                            m_, n_,
                            dAparray_, 
                            dpdZarray_,
@@ -395,7 +395,7 @@ double test_kronmult_vbatched(  int const idim,
 			   Wcapacity_bytes,
                            batchCount );
             break;
-        case 3:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,3>), dim3(batchCount), dim3(nthreads ), 0, 0,  
+        case 3:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult3_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
                            m_, n_,
                            dAparray_, 
                            dpdZarray_,
@@ -404,7 +404,7 @@ double test_kronmult_vbatched(  int const idim,
 			   Wcapacity_bytes,
                            batchCount );
             break;
-        case 4:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,4>), dim3(batchCount), dim3(nthreads ), 0, 0,  
+        case 4:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult4_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
                            m_, n_,
                            dAparray_, 
                            dpdZarray_,
@@ -413,7 +413,7 @@ double test_kronmult_vbatched(  int const idim,
 			   Wcapacity_bytes,
                            batchCount );
             break;
-        case 5:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,5>), dim3(batchCount), dim3(nthreads ), 0, 0,  
+        case 5:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult5_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
                            m_, n_,
                            dAparray_, 
                            dpdZarray_,
@@ -422,7 +422,7 @@ double test_kronmult_vbatched(  int const idim,
 			   Wcapacity_bytes,
                            batchCount );
             break;
-        case 6:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult_vbatched<T,6>), dim3(batchCount), dim3(nthreads ), 0, 0,  
+        case 6:  hipLaunchKernelGGL(HIP_KERNEL_NAME(kronmult6_vbatched<T>), dim3(batchCount), dim3(nthreads ), 0, 0,  
                            m_, n_,
                            dAparray_, 
                            dpdZarray_,
@@ -439,6 +439,11 @@ double test_kronmult_vbatched(  int const idim,
         // note important to wait for kernel to finish
         // -------------------------------------------
         hipError_t istat = hipDeviceSynchronize();
+        if (istat != hipSuccess) {
+                std::cout << " line " << __LINE__
+                          << " istat = " << istat
+                          << std::endl;
+        };
         assert( istat == hipSuccess );
         }
 #else

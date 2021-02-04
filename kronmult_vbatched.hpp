@@ -116,6 +116,7 @@ void kronmult_vbatched(
 
 	auto prod = [=](int const istart, int const iend,
 			int const * const arr_) -> int {
+                assert( istart >= 1 );
 		int ans = 1;
 		// -------------------------------------------
 		// note starting index 1 and inclusive of iend
