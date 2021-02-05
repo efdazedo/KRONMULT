@@ -155,8 +155,8 @@ void kronmult_vbatched(
 	int const sizeXW = max( sizeX, sizeW );
 	int const subbatchCount =  max(1,min( batchCount_in, (Wcapacity_bytes/(2*sizeXW*sizeof(T)) )));
 	if (idebug >= 1) {
-		printf("sizeX=%d, sizeW=%d, subbatchCount=%d Wcapacity_bytes=%ld\n",
-		        sizeX,    sizeW,    subbatchCount,   Wcapacity_bytes );
+		printf("sizeX=%d, sizeW=%d, subbatchCount=%d Wcapacity_bytes=%ld batchCount_in=%d\n",
+		        sizeX,    sizeW,    subbatchCount,   Wcapacity_bytes,    batchCount_in );
 	};
 	assert( subbatchCount >= 1 );
 
