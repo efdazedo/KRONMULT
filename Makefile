@@ -82,3 +82,32 @@ clean:
 	rm test_kgemm_nn_batched test_kgemm_nt_batched *.o
 	rm test_kronmult6_batched  test_kronmult6_pbatched
 	rm test_kronmult6_xbatched test_kronmult6_vbatched
+	-rm *.o
+	-rm *.lo
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.lo: %.cpp
+	$(CXX) $(CXXFLAGS) $(PIC) -c $< -o $@
+
+libname=libkronmult
+ver=0.1.0
+
+static: $(KRONSRC:.cpp=.o)
+	ar qc $(libname).a *.o
+	ranlib $(libname).a
+
+shared: $(KRONSRC:.cpp=.lo)
+	$(LD) $(SHARED) $(SO)$(libname).so.$(ver) -o $(libname).so.$(ver) *.lo $(LIBS)
+
+libs: static shared
+
+PREFIX ?= /usr/local
+install: all libs
+	mkdir -p $(PREFIX}/lib
+	cp $(libname).a $(PREFIX)/lib/
+	cp $(libname).so.$(ver) $(PREFIX)/lib/
+	ln -s $(PREFIX)/lib/$(libname).so.$(ver) $(PREFIX)/lib/$(libname).so
+	mkdir -p $(PREFIX)/bin
+	find * -perm /a=x -exec cp {} $(PREFIX)/bin/ \;
