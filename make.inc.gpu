@@ -1,5 +1,5 @@
 CXXFLAGS = -DUSE_GPU  -O3
-CXX=nvcc -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_61  --resource-usage --generate-line-info --maxrregcount 64
+CXX=nvcc -x cu  -Xcompiler -fopenmp  --gpu-architecture=sm_70  --resource-usage --generate-line-info --maxrregcount 64
 PIC=-Xcompiler -fPIC
 LD=g++
 SHARED=-shared
