@@ -81,6 +81,7 @@ double test_kronmult_vbatched(  int const idim,
         
 {
 
+        bool const zero_Warray = false;
 
 	int const m1 = (idim >= 1) ? m_array[0] : 1; int const n1 = (idim >= 1) ? n_array[0] : 1;
 	int const m2 = (idim >= 2) ? m_array[1] : 1; int const n2 = (idim >= 2) ? n_array[1] : 1;
@@ -164,7 +165,9 @@ double test_kronmult_vbatched(  int const idim,
 	memset( Yarray_,0,sizeof(T)*Ysize * batchCount);
 	memset( Y2array_,0,sizeof(T)*Ysize * batchCount);
 
-	memset( Warray_,0,Wcapacity_bytes);
+        if (zero_Warray) {
+	  memset( Warray_,0,Wcapacity_bytes);
+          };
 
 
 
@@ -338,8 +341,10 @@ double test_kronmult_vbatched(  int const idim,
         host2gpu( dZarray_, Zarray_, sizeof(T)*Zsize*batchCount );
         host2gpu( dYarray_, Yarray_, sizeof(T)*Ysize*batchCount );
 
-	memset( Warray_, 0, Wcapacity_bytes );
-        host2gpu( dWarray_, Warray_, Wcapacity_bytes );
+        if (zero_Warray) {
+	  memset( Warray_, 0, Wcapacity_bytes );
+          host2gpu( dWarray_, Warray_, Wcapacity_bytes );
+          };
 
         for(int ibatch=1; ibatch <= batchCount;  ibatch++) {
                 pdXarray_[ (ibatch-1) ] = &(dXarray(1,ibatch));
