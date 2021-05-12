@@ -631,6 +631,21 @@ double test_kronmult_xbatched(  int const idim,
         myfree( dZarray_ ); dZarray_ = nullptr;
         myfree( dWarray_ ); dWarray_ = nullptr;
 
+
+        if (dpdXarray_ != nullptr) {
+            myfree( dpdXarray_ ); dpdXarray_ = nullptr;
+        };
+        if (dpdYarray_ != nullptr) {
+            myfree( dpdYarray_ ); dpdYarray_ = nullptr;
+        };
+        if (dpdZarray_ != nullptr) {
+            myfree( dpdZarray_ ); dpdZarray_ = nullptr;
+        };
+        if (dpdWarray_ != nullptr) {
+            myfree( dpdWarray_ ); dpdWarray_ = nullptr;
+        };
+
+
         free( Aarray_ ); Aarray_ = nullptr;
         free( Aparray_ ); Aparray_ = nullptr;
 
@@ -642,6 +657,21 @@ double test_kronmult_xbatched(  int const idim,
 
         free( Zarray_ ); Zarray_ = nullptr;
         free( Warray_ ); Warray_ = nullptr;
+
+        if (pdXarray_ != nullptr) {
+            free( pdXarray_ ); pdXarray_ = nullptr;
+        };
+        if (pdYarray_ != nullptr) {
+            free( pdYarray_ ); pdYarray_ = nullptr;
+        };
+        if (pdZarray_ != nullptr) {
+            free( pdZarray_ ); pdZarray_ = nullptr;
+        };
+        if (pdWarray_ != nullptr) {
+            free( pdWarray_ ); pdWarray_ = nullptr;
+        };
+
+
 
         return(std::min(max_abserr,max_relerr)); 
 
