@@ -581,21 +581,80 @@ T test_kronmult_pbatched(  int const idim,
         // cleanup
         // -------
 
-        myfree( dAarray_ ); dAarray_ = nullptr;
-        myfree( dXarray_ ); dXarray_ = nullptr;
-        myfree( dYarray_ ); dYarray_ = nullptr;
-        myfree( dZarray_ ); dZarray_ = nullptr;
-        myfree( dWarray_ ); dWarray_ = nullptr;
-
-        free( Aarray_ ); Aarray_ = nullptr;
-        free( Xarray_ ); Xarray_ = nullptr;
-        free( Yarray_ ); Yarray_ = nullptr;
-        if (use_overlap_in_Y) {
-          free( Y2array_ ); Y2array_ = nullptr;
+        if (dAarray_ != nullptr) {
+          myfree( dAarray_ ); dAarray_ = nullptr;
+        };
+        if (dXarray_ != nullptr) {
+          myfree( dXarray_ ); dXarray_ = nullptr;
+        };
+        if (dYarray_ != nullptr) {
+          myfree( dYarray_ ); dYarray_ = nullptr;
+        };
+        if (dZarray_ != nullptr) {
+          myfree( dZarray_ ); dZarray_ = nullptr;
+          };
+        if (dWarray_ != nullptr) {
+          myfree( dWarray_ ); dWarray_ = nullptr;
         };
 
-        free( Zarray_ ); Zarray_ = nullptr;
-        free( Warray_ ); Warray_ = nullptr;
+
+        if (dpdXarray_ != nullptr) {
+            myfree( dpdXarray_ ); dpdXarray_ = nullptr;
+        };
+
+        if (dpdYarray_ != nullptr) {
+            myfree( dpdYarray_ ); dpdYarray_ = nullptr;
+        };
+
+        if (dpdZarray_ != nullptr) {
+            myfree( dpdZarray_ ); dpdZarray_ = nullptr;
+        };
+
+        if (dpdWarray_ != nullptr) {
+            myfree( dpdWarray_ ); dpdWarray_ = nullptr;
+        };
+
+
+        if (Aarray_ != nullptr) {
+          free( Aarray_ ); Aarray_ = nullptr;
+        };
+        if (Xarray_ != nullptr) {
+          free( Xarray_ ); Xarray_ = nullptr;
+        };
+        if (Yarray_ != nullptr) {
+          free( Yarray_ ); Yarray_ = nullptr;
+        };
+
+        if (use_overlap_in_Y) {
+         if (Y2array_ != nullptr) {
+          free( Y2array_ ); Y2array_ = nullptr;
+         };
+        };
+
+        if (Zarray_ != nullptr) {
+          free( Zarray_ ); Zarray_ = nullptr;
+        };
+
+        if (Warray_ != nullptr) {
+          free( Warray_ ); Warray_ = nullptr;
+        };
+
+        if (pdXarray_ != nullptr) {
+            free( pdXarray_ ); pdXarray_ = nullptr;
+        };
+
+        if (pdYarray_ != nullptr) {
+            free( pdYarray_ ); pdYarray_ = nullptr;
+        };
+
+        if (pdZarray_ != nullptr) {
+            free( pdZarray_ ); pdZarray_ = nullptr;
+        };
+
+        if (pdWarray_ != nullptr) {
+            free( pdWarray_ ); pdWarray_ = nullptr;
+        };
+
 
         return(max_abserr);
 
