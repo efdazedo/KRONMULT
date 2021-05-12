@@ -9,7 +9,7 @@ void kronmult4_xbatched(
                        double* Yarray_[],
                        double* Warray_[],
                        int const batchCount,
-                       int const subbatchCount = 0 )
+                       int subbatchCount = 0 )
 {
         auto max = [](int const x,
                       int const y) -> int {
