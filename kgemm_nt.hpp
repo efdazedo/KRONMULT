@@ -70,6 +70,8 @@ void kgemm_nt2( int const mm, int const nn, int const kk,
 
         //  ------------------------------------
         //  commonly  mm is large, but kk, nn are small
+        //  or
+        //  mm and kk are small but nn is large
         //  ------------------------------------
 
 
@@ -115,9 +117,24 @@ void kgemm_nt2( int const mm, int const nn, int const kk,
 		    auto const inc_A = ldA;
 		    auto const inc_B = ldB;
 
+                    bool const use_i_faster = (isize >= jsize);
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
-			    int const  i = (ij0 % isize) + 1;
-			    int const  j = (ij0 - (i-1))/isize + 1;
+                        auto i = 0;
+                        auto j = 0;
+                        if (use_i_faster) {
+                            // -------------------------
+                            // ij0 = (i-1) + (j-1)*isize
+                            // -------------------------
+			    i = (ij0 % isize) + 1;
+			    j = (ij0 - (i-1))/isize + 1;
+                        }
+                        else {
+                            // --------------------------
+                            // ij0 = (j-1) + (i-1)*jsize
+                            // --------------------------
+                            j = (ij0 % jsize) + 1;
+                            i = (ij0 - (j-1))/jsize + 1;
+                        };
 			    Tc cij = 0;
 			    bool constexpr use_pointer = true;
 			    if (use_pointer) {
