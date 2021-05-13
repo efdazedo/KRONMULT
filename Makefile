@@ -9,6 +9,10 @@ KRONSRC=  \
 	kgemm_nt_batched.hpp \
 	kgemm_nt.cpp \
 	kgemm_nt.hpp \
+	kgemm_tt_batched.cpp \
+	kgemm_tt_batched.hpp \
+	kgemm_tt.cpp \
+	kgemm_tt.hpp \
 	kroncommon.hpp \
 	kronmult1_batched.cpp \
 	kronmult1_batched.hpp \
@@ -51,7 +55,7 @@ KRONSRC=  \
 	kronmult6_xbatched.cpp \
 	kronmult6.hpp 
 
-all: test_kgemm_nn_batched test_kgemm_nt_batched \
+all: test_kgemm_nn_batched test_kgemm_nt_batched test_kgemm_tt_batched \
 	test_kronmult6_batched test_kronmult6_pbatched \
 	test_kronmult6_xbatched test_kronmult6_vbatched
 
@@ -61,6 +65,9 @@ test_kgemm_nn_batched: test_kgemm_nn_batched.cpp kgemm_nn_batched.hpp kgemm_nn.h
 
 test_kgemm_nt_batched: test_kgemm_nt_batched.cpp kgemm_nt_batched.hpp kgemm_nt.hpp
 	$(CXX) $(CXXFLAGS) -o test_kgemm_nt_batched test_kgemm_nt_batched.cpp $(LIBS) 
+
+test_kgemm_tt_batched: test_kgemm_tt_batched.cpp kgemm_tt_batched.hpp kgemm_tt.hpp
+	$(CXX) $(CXXFLAGS) -o test_kgemm_tt_batched test_kgemm_tt_batched.cpp $(LIBS) 
 
 test_kronmult6_batched: test_kronmult6_batched.cpp $(KRONSRC)
 	$(CXX) $(CXXFLAGS) -o test_kronmult6_batched test_kronmult6_batched.cpp $(LIBS)
