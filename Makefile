@@ -14,6 +14,11 @@ KRONSRC=  \
 	kgemm_tt.cpp \
 	kgemm_tt.hpp \
 	kroncommon.hpp \
+	\
+	kronm_forward.hpp \
+	kronm_backward.hpp \
+	kronm.hpp \
+	\
 	kronmult1_batched.cpp \
 	kronmult1_batched.hpp \
 	kronmult1_pbatched.cpp \
