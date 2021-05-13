@@ -564,6 +564,7 @@ int main_func( double const tol)
         // -----------------
         if (nerrors == 0) {
 
+           {
            int batchCount = 16;
            int const n = 8;
            int const idebug = 1;
@@ -575,7 +576,21 @@ int main_func( double const tol)
                 test_kgemm_nt_batched<T>(mm,nn,kk,batchCount,idebug);
                 batchCount *= n;
                 };
+           };
 
+           {
+           int batchCount = 16;
+           int const n = 8;
+           int const idebug = 1;
+           for(int i=1; i <= 5; i++) {
+                int const mm = n;
+                int const nn = std::pow(n,(6-i));
+                int const kk = n;
+
+                test_kgemm_nt_batched<T>(mm,nn,kk,batchCount,idebug);
+                batchCount *= n;
+                };
+           };
         };
 
 
