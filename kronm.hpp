@@ -23,7 +23,7 @@ void kronm(
         int const ndim,
         int const m_array[],
         int const n_array[],
-        T* const A_array[],
+        T const * const A_array[],
         int const nvec,
         T* X_,
         T* Y_,
@@ -32,6 +32,7 @@ void kronm(
                 
 {
     bool constexpr use_forward = true;
+    printf("kronm:ndim %d, nvec %d\n", ndim,nvec);
 
     if (use_forward) {
         kronm_forward<T>(ndim, m_array, n_array, A_array,

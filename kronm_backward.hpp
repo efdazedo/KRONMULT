@@ -23,7 +23,7 @@ void kronm_backward(
         int const ndim,
         int const m_array[],
         int const n_array[],
-        T* const A_array[],
+        T const * const A_array[],
         int const nvec,
         T* X_,
         T* Y_,
@@ -49,6 +49,7 @@ void kronm_backward(
             int const ij_inc = 1;
 #endif
 
+            SYNCTHREADS;
 
             for(int ij=ij_start; ij <= ij_end; ij += ij_inc) {
                 // ij = i + (j-1)*mm
@@ -59,6 +60,8 @@ void kronm_backward(
                              Asrc_[  indx2f(j,i,ldA) ] );
             };
 
+            SYNCTHREADS;
+
     };
 
     auto prod = [] (int const ndim, int const n_array[]) -> int {
@@ -66,6 +69,7 @@ void kronm_backward(
         for(int i=0; i < ndim; i++) {
             iprod *= n_array[i];
         };
+        return(iprod);
     };
 
 
@@ -90,10 +94,10 @@ void kronm_backward(
           // Yout = Xin' * Amat'
           // Amat is n by k, Xin is k by m
           // -----------------
-        T const Ap = Xin;
-        T const Bp = A_array[i];
+        T const * const Ap = Xin;
+        T const * const Bp = A_array[i];
 
-        T const Cp = (is_final && (!need_transpose) ) ? Y_ : Yout;
+        T * Cp = (is_final && (!need_transpose) ) ? Y_ : Yout;
         T const beta = (is_final && (!need_transpose) ) ? 1 : 0;
 
 

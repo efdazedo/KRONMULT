@@ -23,7 +23,7 @@ void kronm_forward(
         int const ndim,
         int const m_array[],
         int const n_array[],
-        T* const A_array[],
+        T const * const A_array[],
         int const nvec,
         T* X_,
         T* Y_,
@@ -49,6 +49,7 @@ void kronm_forward(
             int const ij_inc = 1;
 #endif
 
+            SYNCTHREADS;
 
             for(int ij=ij_start; ij <= ij_end; ij += ij_inc) {
                 // ij = i + (j-1)*mm
@@ -58,6 +59,7 @@ void kronm_forward(
                 Bdest_[ indx2f(i,j,ldB) ] = Asrc_[ indx2f(j,i,ldA) ];
             };
 
+            SYNCTHREADS;
     };
 
     auto prod = [] (int const ndim, int const n_array[]) -> int {
@@ -65,6 +67,7 @@ void kronm_forward(
         for(int i=0; i < ndim; i++) {
             iprod *= n_array[i];
         };
+        return(iprod);
     };
 
 
@@ -83,7 +86,7 @@ void kronm_forward(
         int const n_dest = prod( ndim, n_array );
 
         T const * const Asrc = X_;
-        T * const Bdest = W_;
+        T       * const Bdest = W_;
         int const ldAsrc = n_dest;
         int const ldBdest = m_dest;
 
@@ -108,10 +111,10 @@ void kronm_forward(
         T const alpha = 1;
 
         
-        T const Ap = A_array[i];
-        T const Bp = Xin;
+        T const * const Ap = A_array[i];
+        T const * const Bp = Xin;
 
-        T const Cp = (is_final) ? Y_ : Yout;
+        T * Cp = (is_final) ? Y_ : Yout;
         T const beta = (is_final) ? 1 : 0;
 
           // -----------------
