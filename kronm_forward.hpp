@@ -1,7 +1,6 @@
 
 #ifndef KRONM_FORWARD_HPP
 #define  KRONM_FORWARD_HPP 1
-#endif
 
 #include "kroncommon.hpp"
 
@@ -149,3 +148,4 @@ void kronm_forward(
           Xin_size = mm * nn;
         }; // for i
 }
+#endif

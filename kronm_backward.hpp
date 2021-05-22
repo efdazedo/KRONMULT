@@ -1,7 +1,6 @@
 
 #ifndef KRONM_BACKWARD_HPP
 #define  KRONM_BACKWARD_HPP 1
-#endif
 
 #include "kroncommon.hpp"
 
@@ -146,3 +145,4 @@ void kronm_backward(
         };
 
 }
+#endif

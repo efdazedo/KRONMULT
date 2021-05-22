@@ -1,7 +1,6 @@
 
 #ifndef KRONM_HPP
 #define  KRONM_HPP 1
-#endif
 
 #include "kroncommon.hpp"
 #include "kronm_forward.hpp"
@@ -32,7 +31,10 @@ void kronm(
                 
 {
     bool constexpr use_forward = true;
-    printf("kronm:ndim %d, nvec %d\n", ndim,nvec);
+    int constexpr idebug = 0;
+    if (idebug >= 1) {
+      printf("kronm:ndim %d, nvec %d\n", ndim,nvec);
+    };
 
     if (use_forward) {
         kronm_forward<T>(ndim, m_array, n_array, A_array,
@@ -43,3 +45,4 @@ void kronm(
                          nvec, X_, Y_, W_ );
     };
 }
+#endif
