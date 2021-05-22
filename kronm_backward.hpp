@@ -30,6 +30,8 @@ void kronm_backward(
         )
                 
 {
+    int constexpr idebug = 0;
+
     auto transpose_add = [] (int const m_dest, int const n_dest,
                               T const * const Asrc_,  int const ldA,
                               T       * const Bdest_, int const ldB ) {
@@ -72,14 +74,19 @@ void kronm_backward(
     };
 
 
-    T *Xin = nullptr;
-    T *Yout = nullptr;
+    T *Xin = X_;
+    T *Yout = W_;
     int const Xsize = prod(ndim,n_array );
     int const Ysize = prod(ndim,m_array );
     int Xin_size = nvec * Xsize;
 
 
     bool const need_transpose = (nvec > 1);
+
+    if (idebug >= 1) {
+        printf("kronm_backward: ndim=%d, nvec=%d\n",ndim,nvec);
+        printf("Xsize=%d, Ysize=%d\n", Xsize,Ysize);
+    };
 
     for( int i = (ndim-1); i >= 0; --i) {
 
@@ -125,6 +132,11 @@ void kronm_backward(
           Yout = temp;
           };
           Xin_size = mm * nn;
+          if (idebug >= 1) {
+              printf("kronm_backward: i=%d, mm=%d, nn=%d, beta=%lf\n",
+                                      i,    mm,    nn,    beta );
+          };
+
         }; // for i
 
 
