@@ -608,7 +608,7 @@ double test_kronmult_xbatched(  int const idim,
                                rel_err = abs_err/(1+std::max( std::abs(Yval),std::abs(Y_ic) ));
                        };
                    };
-                  if ((idebug >= 1)  && (abs_err > max_abserr)) {
+                  if ((idebug >= 2)  && (abs_err > max_abserr)) {
                             printf("idim=%d abs_err %lf max_abserr %lf\n",
                                     idim,   abs_err,    max_abserr );
                         };
@@ -617,7 +617,7 @@ double test_kronmult_xbatched(  int const idim,
 
 
 
-                   if (idebug >= 1) {
+                   if (idebug >= 2) {
                        T const tol = 1.0/(1000.0 * 1000.0);
                        if ((abs_err > tol ) || (rel_err > tol)) {
                              std::cout  << " idim = " << idim
@@ -710,10 +710,8 @@ int main_func( double const tol) {
 
         int nerrors = 0;
 
-        // for (int idim =1; idim <= 6; idim++) {
-        // for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
-        for (int idim =2; idim <= 2; idim++) {
-        for (int ibatch_table=0; ibatch_table <  1 ; ibatch_table++) {
+        for (int idim =1; idim <= 6; idim++) {
+        for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
         for (int in_table = 0;  in_table < size_n_table; in_table++) {
                 int const n = n_table[in_table];
                 int const batchCount = batch_table[ibatch_table];
@@ -724,7 +722,7 @@ int main_func( double const tol) {
                         nerrors += 1;
                 };
 
-                if ((idebug >= 1) || (!isok)) {
+                if ((idebug >= 2) || (!isok)) {
                         std::cout << " idim = "  << idim
                                   << " n = " << n 
                                   << " batchCount = " << batchCount

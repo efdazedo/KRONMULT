@@ -30,7 +30,7 @@ void kronm(
         )
                 
 {
-    bool constexpr use_forward = true;
+    bool constexpr use_forward = false;
     int constexpr idebug = 0;
     if (idebug >= 1) {
       printf("kronm:ndim %d, nvec %d\n", ndim,nvec);
