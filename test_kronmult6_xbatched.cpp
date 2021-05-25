@@ -72,13 +72,13 @@ void myfree( void * devPtr ) {
 template<typename T, typename Tc=double>
 double test_kronmult_xbatched(  int const idim,
                           int const n, int const batchCount, 
-                          int const idebug = 0, 
+                          int const idebug = 1, 
                           bool const do_check  = true,
                           bool const use_overlap_in_Y = true )
         
 {
 
-	int const lda = n + 3 ;
+	int const lda = n  ;
 
 
 
@@ -92,6 +92,9 @@ double test_kronmult_xbatched(  int const idim,
         // ----------------------------
 
         int const Xsize = std::pow(n,idim);
+        int const Ysize = Xsize;
+        int const Zsize = Xsize;
+        int const Wsize = Xsize;
 
 	size_t const Aarray_nbytes = sizeof(T)*lda*n*idim*batchCount;
 	size_t const Aparray_nbytes = sizeof(T*) * idim * batchCount;
@@ -100,11 +103,11 @@ double test_kronmult_xbatched(  int const idim,
         T **Aparray_ = (T **) malloc( Aparray_nbytes );
 
         T *Xarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Yarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Y2array_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        T *Yarray_ = (T *) malloc( sizeof(T)*Ysize * batchCount);
+        T *Y2array_ = (T *) malloc( sizeof(T)*Ysize * batchCount);
 
-        T *Zarray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
-        T *Warray_ = (T *) malloc( sizeof(T)*Xsize * batchCount);
+        T *Zarray_ = (T *) malloc( sizeof(T)*Zsize * batchCount);
+        T *Warray_ = (T *) malloc( sizeof(T)*Wsize * batchCount);
 
         assert( Aarray_ != nullptr );
         assert( Aparray_ != nullptr );
@@ -121,9 +124,9 @@ double test_kronmult_xbatched(  int const idim,
 	T **dAparray_ = (T **) myalloc( Aparray_nbytes );
 
         T *dXarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dZarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dYarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
-        T *dWarray_ = (T *) myalloc( sizeof(T)*Xsize * batchCount );
+        T *dZarray_ = (T *) myalloc( sizeof(T)*Zsize * batchCount );
+        T *dYarray_ = (T *) myalloc( sizeof(T)*Ysize * batchCount );
+        T *dWarray_ = (T *) myalloc( sizeof(T)*Wsize * batchCount );
 
         assert( dAarray_  != nullptr );
         assert( dAparray_ != nullptr );
@@ -424,7 +427,7 @@ double test_kronmult_xbatched(  int const idim,
         // copy from gpu to host
         // interface is gpu2host( dest, src, nbytes )
         // ------------------------------------------
-        gpu2host( Yarray_, dYarray_,  sizeof(T)*Xsize*batchCount);
+        gpu2host( Yarray_, dYarray_,  sizeof(T)*Ysize*batchCount);
 
 
 
@@ -584,6 +587,12 @@ double test_kronmult_xbatched(  int const idim,
                         for(int ibatch=1; ibatch <= batchCount; ibatch++) {
                                 Yval += Y2array(ic,ibatch);
                         };
+                        if (idebug >= 2) {
+                            printf("ic=%d, Yval=%lf, Yarray(ic,1)=%lf\n",
+                                    ic,    Yval,     Yarray(ic,1) );
+                        };
+
+
                         abs_err = std::abs( Yval - Yarray(ic,1) );
 		        rel_err = abs_err/(1+std::max( std::abs(Yval),std::abs(Y_ic) ));
                    }
@@ -591,10 +600,18 @@ double test_kronmult_xbatched(  int const idim,
                        for(int ibatch=1; ibatch <= batchCount; ibatch++) {
                                Yval = Y2array(ic,ibatch);
                                Y_ic  = Yarray(ic,ibatch);
+                               if (idebug >= 2) {
+                                 printf("ibatch=%d, ic=%d, Yval=%lf, Yarray(ic,ibatch)=%lf\n",
+                                         ibatch,    ic,    Yval,     Yarray(ic,ibatch) );
+                               };
                                abs_err = std::abs(Yval - Y_ic);
                                rel_err = abs_err/(1+std::max( std::abs(Yval),std::abs(Y_ic) ));
                        };
                    };
+                  if ((idebug >= 1)  && (abs_err > max_abserr)) {
+                            printf("idim=%d abs_err %lf max_abserr %lf\n",
+                                    idim,   abs_err,    max_abserr );
+                        };
                    max_abserr = std::max( max_abserr,abs_err);
                    max_relerr = std::max( max_relerr,rel_err);
 
@@ -682,7 +699,7 @@ double test_kronmult_xbatched(  int const idim,
 template<typename T>
 int main_func( double const tol) {
 
-        int const idebug = 0;
+        int const idebug = 1;
 
         int batch_table[] = {1,16,128};
         int const size_batch_table = sizeof(batch_table)/sizeof(batch_table[0]);
@@ -693,8 +710,10 @@ int main_func( double const tol) {
 
         int nerrors = 0;
 
-        for (int idim =1; idim <= 6; idim++) {
-        for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
+        // for (int idim =1; idim <= 6; idim++) {
+        // for (int ibatch_table=0; ibatch_table < size_batch_table; ibatch_table++) {
+        for (int idim =2; idim <= 2; idim++) {
+        for (int ibatch_table=0; ibatch_table <  1 ; ibatch_table++) {
         for (int in_table = 0;  in_table < size_n_table; in_table++) {
                 int const n = n_table[in_table];
                 int const batchCount = batch_table[ibatch_table];

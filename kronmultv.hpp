@@ -31,7 +31,7 @@ void kronmultv(
                 T   W_[]
 	        )
 {
-    bool constexpr use_kronmultv_org = true;
+    bool constexpr use_kronmultv_org = false;
 
     if (use_kronmultv_org) {
         kronmultv_org<T,ndim>( 
@@ -52,7 +52,7 @@ void kronmultv(
         int const n_array[] = {n1,n2,n3,n4,n5,n6};
         T const * const A_array[] = {A1_, A2_, A3_, A4_, A5_, A6_ };
 
-        kronm(ndim,m_array,n_array,A_array,
+        kronm<T>(ndim,m_array,n_array,A_array,
                 nvec, X_, Y_, W_ );
 
     };

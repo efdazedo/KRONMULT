@@ -30,6 +30,8 @@ void kronm_forward(
         )
                 
 {
+    int const idebug = 0;
+
     auto transpose_copy = [] (int const m_dest, int const n_dest,
                               T const * const Asrc_,  int const ldA,
                               T       * const Bdest_, int const ldB ) {
@@ -101,6 +103,12 @@ void kronm_forward(
        Yout = W_;
     };
 
+    if (idebug >= 1) {
+        printf("kronm_forward:ndim=%d, nvec=%d, need_transpose=%d m=%d n=%d \n",
+                              ndim,    nvec,    need_transpose,   
+                              m_array[0], n_array[0] );
+    };
+
 
     for( int i=0; i < ndim; i++) {
 
@@ -113,6 +121,8 @@ void kronm_forward(
         T const * const Ap = A_array[i];
         T const * const Bp = Xin;
 
+        assert( Ap != nullptr );
+
         T * Cp = (is_final) ? Y_ : Yout;
         T const beta = (is_final) ? 1 : 0;
 
@@ -124,9 +134,18 @@ void kronm_forward(
           int const mm = m_array[i];
           int const kk = n_array[i];
 
+          assert( mm >= 1);
           assert( kk > 0 );
           int const nn = Xin_size / kk;
           assert( nn * kk == Xin_size );
+          assert( nn >= 1 );
+
+          if (idebug >= 2) {
+              printf("kronm_forward: i=%d, mm=%d, nn=%d, kk=%d, Xin_size=%d\n",
+                                     i,    mm,    nn,    kk,    Xin_size );
+              printf("kronm_forward: is_final=%d beta=%lf \n",
+                                     is_final,   beta );
+          };
 
           int const ld1 = mm;
           int const ld2 = nn;
@@ -147,5 +166,7 @@ void kronm_forward(
           };
           Xin_size = mm * nn;
         }; // for i
+
+        SYNCTHREADS;
 }
 #endif
