@@ -72,7 +72,7 @@ void myfree( void * devPtr ) {
 template<typename T>
 T test_kronmult_pbatched(  int const idim,
                           int const n, int const batchCount, 
-                          int const idebug = 0, 
+                          int const idebug = 1, 
                           bool const do_check  = true,
                           bool const use_overlap_in_Y = true )
         
@@ -664,7 +664,7 @@ T test_kronmult_pbatched(  int const idim,
                       
 int main() {
 
-        int const idebug = 0;
+        int const idebug = 1;
 
         int batch_table[] = {1,16,128};
         int const size_batch_table = sizeof(batch_table)/sizeof(batch_table[0]);
@@ -711,7 +711,7 @@ int main() {
                // try performance test
                // ---------------------
                int const batchCount = 256;
-               bool const do_check = 0;
+               bool const do_check = false;
                int const idebug = 0;
                int const idim = 6;
 

@@ -525,7 +525,7 @@ T test_kgemm_tt_batched( int const mm,
 template<typename T>
 int main_func( double const tol)
 {
-        int const idebug = 0;
+        int const idebug = 1;
         int const inc = 7;
         int const kk_max = 65;
         int const mm_max = 65;
@@ -572,7 +572,7 @@ int main_func( double const tol)
            {
            int batchCount = 16;
            int const n = 8;
-           int const idebug = 1;
+           int const idebug = 0;
            for(int i=1; i <= 5; i++) {
                 int const mm = std::pow(n,(6-i));
                 int const nn = n;
@@ -586,7 +586,7 @@ int main_func( double const tol)
            {
            int batchCount = 16;
            int const n = 8;
-           int const idebug = 1;
+           int const idebug = 0;
            for(int i=1; i <= 5; i++) {
                 int const mm = n;
                 int const nn = std::pow(n,(6-i));

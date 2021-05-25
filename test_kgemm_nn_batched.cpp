@@ -527,7 +527,7 @@ T test_kgemm_nn_batched( int const mm,
 template<typename T, typename Tc=double>
 int main_func( double const tol)
 {
-        int const idebug = 0;
+        int const idebug = 1;
         int const inc = 7;
         int const kk_max = 65;
         int const mm_max = 65;
@@ -577,7 +577,7 @@ int main_func( double const tol)
         //  performance tests
         //  -----------------
         if (nerrors == 0) {
-                const int idebug = 1;
+                const int idebug = 0;
                 const int batchCount = 2*64;
                 for(int n=1; n <= 10; n++) {
                   int const n2 = n*n;

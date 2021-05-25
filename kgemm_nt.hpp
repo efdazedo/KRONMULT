@@ -38,13 +38,13 @@ void kgemm_nt2( int const mm, int const nn, int const kk,
 
         Tc const alpha = alpha_in;
         Tc const beta = beta_in;
-	int constexpr nb = 2*32;
+	int const nb = 2*32;
 #ifdef USE_GPU
         // ---------------------------
         // use matlab 1 based indexing
         // ---------------------------
 
-	int constexpr warpsize = WARPSIZE;
+	int const warpsize = WARPSIZE;
         int const nthreads = blockDim.x; 
 
         assert( blockDim.y == 1);
@@ -117,26 +117,31 @@ void kgemm_nt2( int const mm, int const nn, int const kk,
 		    auto const inc_A = ldA;
 		    auto const inc_B = ldB;
 
-                    bool const use_i_faster = (isize >= jsize);
+                    // bool const use_i_faster = (isize >= jsize);
+                    bool const use_i_faster = false;
+
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
-                        auto i = 0;
-                        auto j = 0;
+                        int i,j;
                         if (use_i_faster) {
                             // -------------------------
                             // ij0 = (i-1) + (j-1)*isize
                             // -------------------------
-			    i = (ij0 % isize) + 1;
-			    j = (ij0 - (i-1))/isize + 1;
+			    // i = (ij0 % isize) + 1;
+			    // j = (ij0 - (i-1))/isize + 1;
+                            j = (ij0/isize) + 1;
+                            i = (ij0 - (j-1)*isize) + 1;
                         }
                         else {
                             // --------------------------
                             // ij0 = (j-1) + (i-1)*jsize
                             // --------------------------
-                            j = (ij0 % jsize) + 1;
-                            i = (ij0 - (j-1))/jsize + 1;
+                            // j = (ij0 % jsize) + 1;
+                            // i = (ij0 - (j-1))/jsize + 1;
+                            i = (ij0/jsize) + 1;
+                            j = (ij0 - (i-1)*jsize) + 1;
                         };
 			    Tc cij = 0;
-			    bool constexpr use_pointer = true;
+			    bool const use_pointer = true;
 			    if (use_pointer) {
 				    int k = 1;
 				    int ia = (istart-1) + i;
@@ -194,6 +199,8 @@ void kgemm_nt2( int const mm, int const nn, int const kk,
 
             }; // end istart
         }; // end jstart
+
+        SYNCTHREADS;
 }
 
 template<typename T>

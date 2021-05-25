@@ -947,7 +947,7 @@ int main_func( double const tol) {
                // try performance test
                // ---------------------
                int const batchCount = 256;
-               bool const do_check = 0;
+               bool const do_check = 1;
                int const idebug = 0;
                int const idim = 6;
 

@@ -117,23 +117,27 @@ void kgemm_tt2( int const mm, int const nn, int const kk,
 		    auto constexpr inc_A = 1;
 		    auto const inc_B = ldB;
 
-                    bool const use_i_faster = (jsize >= isize);
+                    // bool const use_i_faster = (jsize >= isize);
+                    bool const use_i_faster = false;
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
-                        auto i = 0;
-                        auto j = 0;
+                        int i,j;
                         if (use_i_faster) {
                             // -------------------------
                             // ij0 = (i-1) + (j-1)*isize
                             // -------------------------
-			    i = (ij0 % isize) + 1;
-			    j = (ij0 - (i-1))/isize + 1;
+			    // i = (ij0 % isize) + 1;
+			    // j = (ij0 - (i-1))/isize + 1;
+                            j = (ij0/isize) + 1;
+                            i = (ij0 - (j-1)*isize) + 1;
                         }
                         else {
                             // --------------------------
                             // ij0 = (j-1) + (i-1)*jsize
                             // --------------------------
-                            j = (ij0 % jsize) + 1;
-                            i = (ij0 - (j-1))/jsize + 1;
+                            // j = (ij0 % jsize) + 1;
+                            // i = (ij0 - (j-1))/jsize + 1;
+                            i = (ij0/jsize) + 1;
+                            j = (ij0 - (i-1)*jsize) + 1;
                         };
 			    Tc cij = 0;
 			    bool constexpr use_pointer = true;
@@ -194,6 +198,8 @@ void kgemm_tt2( int const mm, int const nn, int const kk,
 
             }; // end istart
         }; // end jstart
+
+        SYNCTHREADS;
 }
 
 template<typename T>
