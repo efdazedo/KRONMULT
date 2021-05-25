@@ -90,7 +90,7 @@ test_kronmult6_vbatched: test_kronmult6_vbatched.cpp $(KRONSRC)
 clean:
 	touch test_kronmult6_batched  test_kronmult6_pbatched
 	touch test_kronmult6_xbatched test_kronmult6_vbatched
-	touch test_kgemm_nn_batched test_kgemm_nt_batched kgemm_nt_batched.o
-	rm test_kgemm_nn_batched test_kgemm_nt_batched *.o
+	touch test_kgemm_nn_batched test_kgemm_tt_batched test_kgemm_nt_batched kgemm_nt_batched.o
+	rm test_kgemm_nn_batched test_kgemm_tt_batched test_kgemm_nt_batched *.o
 	rm test_kronmult6_batched  test_kronmult6_pbatched
 	rm test_kronmult6_xbatched test_kronmult6_vbatched
