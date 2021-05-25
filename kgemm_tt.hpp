@@ -117,27 +117,33 @@ void kgemm_tt2( int const mm, int const nn, int const kk,
 		    auto constexpr inc_A = 1;
 		    auto const inc_B = ldB;
 
-                    // bool const use_i_faster = (jsize >= isize);
-                    bool const use_i_faster = false;
+		    // -------------------------------------
+		    // compute (1) Y = A' * X' where A is k by k, X is n by k, n >> k 
+		    //
+		    //         C(i,j) = sum( A(k,i) * X(j,k), over k)
+		    //
+		    //         (2) C = X' * A', where A is k by k, X is k by n, n >> k
+		    //
+		    //         C(i,j) = sum( X(k,i) * A(j,k), over k )
+		    // -------------------------------------
+                    bool const use_i_faster = (isize >= jsize);
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
                         int i,j;
                         if (use_i_faster) {
                             // -------------------------
                             // ij0 = (i-1) + (j-1)*isize
                             // -------------------------
-			    // i = (ij0 % isize) + 1;
-			    // j = (ij0 - (i-1))/isize + 1;
                             j = (ij0/isize) + 1;
                             i = (ij0 - (j-1)*isize) + 1;
+			    assert( ij0 == ( (i-1) + (j-1)*isize ) );
                         }
                         else {
                             // --------------------------
                             // ij0 = (j-1) + (i-1)*jsize
                             // --------------------------
-                            // j = (ij0 % jsize) + 1;
-                            // i = (ij0 - (j-1))/jsize + 1;
                             i = (ij0/jsize) + 1;
                             j = (ij0 - (i-1)*jsize) + 1;
+			    assert( ij0 == ( (j-1) + (i-1)*jsize ) );
                         };
 			    Tc cij = 0;
 			    bool constexpr use_pointer = true;

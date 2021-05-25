@@ -31,7 +31,7 @@ void kronmultv(
                 T   W_[]
 	        )
 {
-    bool constexpr use_kronmultv_org = false;
+    bool constexpr use_kronmultv_org = true;
 
     if (use_kronmultv_org) {
         kronmultv_org<T,ndim>( 

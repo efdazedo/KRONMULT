@@ -570,7 +570,11 @@ int main_func( double const tol)
         if (nerrors == 0) {
 
            {
+#ifdef USE_GPU
+           int batchCount = 256;
+#else
            int batchCount = 16;
+#endif
            int const n = 8;
            int const idebug = 0;
            for(int i=1; i <= 5; i++) {
@@ -584,7 +588,11 @@ int main_func( double const tol)
            };
 
            {
+#ifdef USE_GPU
+           int batchCount = 256;
+#else
            int batchCount = 16;
+#endif
            int const n = 8;
            int const idebug = 0;
            for(int i=1; i <= 5; i++) {

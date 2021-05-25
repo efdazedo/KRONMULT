@@ -120,7 +120,12 @@ void kgemm_nn2( int const mm, int const nn, int const kk,
                     // perform matrix calculations
                     // ---------------------------
 
-                    bool use_i_faster = false;
+		    // Compute (1) C = A * X, A is k by k, X is k by n, n >> k
+		    //         C(i,j) = sum( A(i,k) * X(k,j), over k )
+		    //         
+		    //         (2) C = X * A, A is k by k, X is n by k, n >> k
+		    //         C(i,j) = sum( X(i,k) * A(k,j), over k )
+                    bool use_i_faster = (isize >= jsize);
 		    for(int ij0 = ij_start-1; ij0 < (isize*jsize); ij0 += ij_size ) {
                         int i,j;
                         if (use_i_faster) {
@@ -129,6 +134,7 @@ void kgemm_nn2( int const mm, int const nn, int const kk,
                             // -------------------------
                             j = (ij0/isize) + 1;
                             i = (ij0 - (j-1)*isize) + 1;
+			    assert( ij0 == ( (i-1) + (j-1)*isize ) );
                         }
                         else {
                             // -------------------------
@@ -136,6 +142,7 @@ void kgemm_nn2( int const mm, int const nn, int const kk,
                             // -------------------------
                             i = (ij0/jsize) + 1;
                             j = (ij0 - (i-1)*jsize) + 1;
+			    assert( ij0 == ( (j-1) + (i-1)*jsize ) );
                         };
                             
 			    int const ia = (istart-1) + i;

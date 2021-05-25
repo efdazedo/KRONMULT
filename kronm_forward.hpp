@@ -44,6 +44,7 @@ void kronm_forward(
 
 #ifdef USE_GPU
 	    int const ij_start = threadIdx.x + 1;
+	    int const nthreads = blockDim.x * blockDim.y * blockDim.z;
 	    int const ij_inc = nthreads;
 #else
             int const ij_start = 1;
