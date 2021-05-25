@@ -120,8 +120,7 @@ void kgemm_tt2( int const mm, int const nn, int const kk,
                     // bool const use_i_faster = (jsize >= isize);
                     bool const use_i_faster = false;
 		    for(int ij0=ij_start-1; ij0 < (isize*jsize); ij0 += ij_size) {
-                        auto i = 0;
-                        auto j = 0;
+                        int i,j;
                         if (use_i_faster) {
                             // -------------------------
                             // ij0 = (i-1) + (j-1)*isize

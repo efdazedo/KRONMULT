@@ -527,7 +527,7 @@ T test_kgemm_nn_batched( int const mm,
 template<typename T, typename Tc=double>
 int main_func( double const tol)
 {
-        int const idebug = 0;
+        int const idebug = 2;
         int const inc = 7;
         int const kk_max = 65;
         int const mm_max = 65;

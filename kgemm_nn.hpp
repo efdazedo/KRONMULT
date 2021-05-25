@@ -120,9 +120,24 @@ void kgemm_nn2( int const mm, int const nn, int const kk,
                     // perform matrix calculations
                     // ---------------------------
 
+                    bool use_i_faster = false;
 		    for(int ij0 = ij_start-1; ij0 < (isize*jsize); ij0 += ij_size ) {
-			    int const i = (ij0 % isize) + 1;
-			    int const j = ((ij0 - (i-1))/isize) + 1;
+                        int i,j;
+                        if (use_i_faster) {
+                            // -------------------------
+                            // ij0 = (i-1) + (j-1)*isize
+                            // -------------------------
+                            j = (ij0/isize) + 1;
+                            i = (ij0 - (j-1)*isize) + 1;
+                        }
+                        else {
+                            // -------------------------
+                            // ij0 = (j-1) + (i-1)*jsize
+                            // -------------------------
+                            i = (ij0/jsize) + 1;
+                            j = (ij0 - (i-1)*jsize) + 1;
+                        };
+                            
 			    int const ia = (istart-1) + i;
 			    int const jb = (jstart-1) + j;
 
@@ -189,6 +204,8 @@ void kgemm_nn2( int const mm, int const nn, int const kk,
 
             }; // end istart
         }; // end jstart
+
+        SYNCTHREADS;
 }
 
 

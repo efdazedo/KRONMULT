@@ -520,7 +520,7 @@ T test_kgemm_nt_batched( int const mm,
 template<typename T>
 int main_func( double const tol)
 {
-        int const idebug = 0;
+        int const idebug = 2;
         int const inc = 7;
         int const kk_max = 65;
         int const mm_max = 65;
