@@ -31,7 +31,11 @@ void kronmultv(
                 T   W_[]
 	        )
 {
+#ifdef USE_ALG993
+    bool constexpr use_kronmultv_org = false;
+#else
     bool constexpr use_kronmultv_org = true;
+#endif
 
     if (use_kronmultv_org) {
         kronmultv_org<T,ndim>( 
