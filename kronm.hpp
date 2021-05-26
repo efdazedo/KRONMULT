@@ -31,6 +31,8 @@ void kronm(
         )
                 
 {
+    int const idebug = 1;
+
     auto prod = [=](int ndim, int const n_array[]) -> int {
 	    int iprod = 1;
 	    for(int i=0; i < ndim; i++) {
@@ -93,9 +95,10 @@ void kronm(
     bool const use_forward = (dflops_forward < dflops_backward);
 #endif
 
-    int const idebug = 0;
     if (idebug >= 1) {
       printf("kronm:ndim %d, nvec %d\n", ndim,nvec);
+      printf("dflops_forward=%lf, dflops_backward=%lf\n", 
+              dflops_forward,     dflops_backward );
     };
 
     if (use_forward) {
