@@ -78,7 +78,7 @@ double test_kronmult_xbatched(  int const idim,
         
 {
 
-	int const lda = n  ;
+	int const lda = n + 3  ;
 
 
 
