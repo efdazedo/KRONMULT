@@ -50,9 +50,10 @@ void kronmultv(
         // -----------------------
         int const m_array[] = {m1,m2,m3,m4,m5,m6};
         int const n_array[] = {n1,n2,n3,n4,n5,n6};
+	int const ld_array[] = {ld1, ld2, ld3, ld4, ld5, ld6 };
         T const * const A_array[] = {A1_, A2_, A3_, A4_, A5_, A6_ };
 
-        kronm<T>(ndim,m_array,n_array,A_array,
+        kronm<T>(ndim,m_array,n_array,A_array, ld_array,
                 nvec, X_, Y_, W_ );
 
     };

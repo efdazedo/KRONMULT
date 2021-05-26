@@ -23,6 +23,7 @@ void kronm_backward(
         int const m_array[],
         int const n_array[],
         T const * const A_array[],
+	int const ld_array[],
         int const nvec,
         T* X_,
         T* Y_,
@@ -104,6 +105,7 @@ void kronm_backward(
           // -----------------
         T const * const Ap = Xin;
         T const * const Bp = A_array[i];
+	int const ldBp = ld_array[i];
 
         T * Cp = (is_final && (!need_transpose) ) ? Y_ : Yout;
         T const beta = (is_final && (!need_transpose) ) ? 1 : 0;
@@ -117,7 +119,7 @@ void kronm_backward(
           assert( mm * kk == Xin_size );
 
           int const ld1 = kk;
-          int const ld2 = nn;
+          int const ld2 = ldBp;
           int const ld3 = mm;
 
           kgemm_tt(mm,nn,kk,

@@ -23,6 +23,7 @@ void kronm_forward(
         int const m_array[],
         int const n_array[],
         T const * const A_array[],
+	int const ld_array[],
         int const nvec,
         T* X_,
         T* Y_,
@@ -120,6 +121,8 @@ void kronm_forward(
 
         
         T const * const Ap = A_array[i];
+	int const ldAp = ld_array[i];
+
         T const * const Bp = Xin;
 
         assert( Ap != nullptr );
@@ -148,7 +151,7 @@ void kronm_forward(
                                      is_final,   beta );
           };
 
-          int const ld1 = mm;
+          int const ld1 = ldAp;
           int const ld2 = nn;
           int const ld3 = mm;
 
