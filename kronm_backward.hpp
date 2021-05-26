@@ -103,6 +103,9 @@ void kronm_backward(
           // Yout = Xin' * Amat'
           // Amat is n by k, Xin is k by m
           // -----------------
+          int const nn = m_array[i];
+          int const kk = n_array[i];
+
         T const * const Ap = Xin;
         T const * const Bp = A_array[i];
 	int const ldBp = ld_array[i];
@@ -111,8 +114,6 @@ void kronm_backward(
         T const beta = (is_final && (!need_transpose) ) ? 1 : 0;
 
 
-          int const nn = m_array[i];
-          int const kk = n_array[i];
 
           assert( kk > 0 );
           int const mm = Xin_size / kk;
