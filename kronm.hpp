@@ -31,7 +31,7 @@ void kronm(
         )
                 
 {
-    int const idebug = 1;
+    int const idebug = 0;
 
     auto prod = [=](int ndim, int const n_array[]) -> int {
 	    int iprod = 1;
