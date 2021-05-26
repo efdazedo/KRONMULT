@@ -688,7 +688,7 @@ int main() {
                         nerrors += 1;
                 };
 
-                if ((idebug >= 1) || (!isok)) {
+                if ((idebug >= 2) || (!isok)) {
                         std::cout << " idim = "  << idim
                                   << " n = " << n 
                                   << " batchCount = " << batchCount
