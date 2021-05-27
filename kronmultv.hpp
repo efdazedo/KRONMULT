@@ -27,9 +27,9 @@ DEVICE_FUNCTION void kronmultv(
 
   if (use_kronmultv_recur)
   {
-    kronmultv_recur<T, ndim>(m1, n1, A1_, ld1, m2, n2, A2_, ld2, m3, n3, A3_, ld3,
-                           m4, n4, A4_, ld4, m5, n5, A5_, ld5, m6, n6, A6_, ld6,
-                           nvec, X_, Y_, W_);
+    kronmultv_recur<T, ndim>(m1, n1, A1_, ld1, m2, n2, A2_, ld2, m3, n3, A3_,
+                             ld3, m4, n4, A4_, ld4, m5, n5, A5_, ld5, m6, n6,
+                             A6_, ld6, nvec, X_, Y_, W_);
   }
   else
   {
