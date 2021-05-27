@@ -1,27 +1,17 @@
 #ifndef KRONMULT5_XBATCHED_HPP
 #define KRONMULT5_XBATCHED_HPP 1
 
-
 #include "kronmult_xbatched.hpp"
-
-
-
 
 // --------------------------------------------------------------------
 // Performs  Y(:,k) += kron(A1(k),...,A5(k)) * X(:,k), k=1:batchCount
 // Note  result in Y but X and W may be modified as temporary work space
 // --------------------------------------------------------------------
 template<typename T>
-GLOBAL_FUNCTION
-void kronmult5_xbatched(
-                       int const n,
-                       T const * const Aarray_[],
-		       int const lda,
-                       T* pX_[],
-                       T* pY_[],
-                       T* pW_[],
-                       int const batchCount,
-		       int const subbatchCount = 0)
+GLOBAL_FUNCTION void
+kronmult5_xbatched(int const n, T const *const Aarray_[], int const lda,
+                   T *pX_[], T *pY_[], T *pW_[], int const batchCount,
+                   int const subbatchCount = 0)
 //
 // conceptual shape of Aarray is  (ndim,batchCount)
 //
@@ -35,11 +25,9 @@ void kronmult5_xbatched(
 //
 //
 {
-        int constexpr ndim = 5;
-	kronmult_xbatched<T,ndim>(
-			n, Aarray_, lda, pX_, pY_, pW_, batchCount, subbatchCount );
+  int constexpr ndim = 5;
+  kronmult_xbatched<T, ndim>(n, Aarray_, lda, pX_, pY_, pW_, batchCount,
+                             subbatchCount);
 }
-
-
 
 #endif

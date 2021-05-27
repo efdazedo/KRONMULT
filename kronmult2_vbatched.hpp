@@ -1,28 +1,17 @@
 #ifndef KRONMULT2_VBATCHED_HPP
 #define KRONMULT2_VBATCHED_HPP 1
 
-
 #include "kronmult_vbatched.hpp"
-
-
-
 
 // --------------------------------------------------------------------
 // Performs  Y(:,k) += kron(A1(k),...,A2(k)) * X(:,k), k=1:batchCount
 // Note  result in Y but X and W may be modified as temporary work space
 // --------------------------------------------------------------------
 template<typename T>
-GLOBAL_FUNCTION
-void kronmult2_vbatched(
-                       int const m1, int const n1,
-		       int const m2, int const n2,
-                       T const * const Aarray_[],
-                       T* pX_[],
-                       T* pY_[],
-                       T* W_,
-		       size_t const Wcapcity,
-                       int const batchCount
-		       )
+GLOBAL_FUNCTION void
+kronmult2_vbatched(int const m1, int const n1, int const m2, int const n2,
+                   T const *const Aarray_[], T *pX_[], T *pY_[], T *W_,
+                   size_t const Wcapcity, int const batchCount)
 //
 // conceptual shape of Aarray(ibatch) is  (m(ibatch), n(ibatch) )
 //
@@ -37,21 +26,17 @@ void kronmult2_vbatched(
 //
 //
 {
-        int constexpr ndim = 2;
-	int const m3 = 1; int const n3 = 1;
-	int const m4 = 1; int const n4 = 1;
-	int const m5 = 1; int const n5 = 1;
-	int const m6 = 1; int const n6 = 1;
-	kronmult_vbatched<T,ndim>(
-			m1, n1, 
-			m2, n2, 
-			m3, n3, 
-			m4, n4, 
-			m5, n5, 
-			m6, n6, 
-			Aarray_, pX_, pY_, W_, Wcapcity,batchCount );
+  int constexpr ndim = 2;
+  int const m3       = 1;
+  int const n3       = 1;
+  int const m4       = 1;
+  int const n4       = 1;
+  int const m5       = 1;
+  int const n5       = 1;
+  int const m6       = 1;
+  int const n6       = 1;
+  kronmult_vbatched<T, ndim>(m1, n1, m2, n2, m3, n3, m4, n4, m5, n5, m6, n6,
+                             Aarray_, pX_, pY_, W_, Wcapcity, batchCount);
 }
-
-
 
 #endif
