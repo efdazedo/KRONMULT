@@ -7,7 +7,7 @@
 #include "kgemm_nt.hpp"
 
 #include "kronm.hpp"
-#include "kronmultv_org.hpp"
+#include "kronmultv_recur.hpp"
 
 template<typename T, int ndim = 1>
 DEVICE_FUNCTION void kronmultv(
@@ -20,14 +20,14 @@ DEVICE_FUNCTION void kronmultv(
     T X_[], T Y_[], T W_[])
 {
 #ifdef USE_ALG993
-  bool constexpr use_kronmultv_org = false;
+  bool constexpr use_kronmultv_recur = false;
 #else
-  bool constexpr use_kronmultv_org = true;
+  bool constexpr use_kronmultv_recur = true;
 #endif
 
-  if (use_kronmultv_org)
+  if (use_kronmultv_recur)
   {
-    kronmultv_org<T, ndim>(m1, n1, A1_, ld1, m2, n2, A2_, ld2, m3, n3, A3_, ld3,
+    kronmultv_recur<T, ndim>(m1, n1, A1_, ld1, m2, n2, A2_, ld2, m3, n3, A3_, ld3,
                            m4, n4, A4_, ld4, m5, n5, A5_, ld5, m6, n6, A6_, ld6,
                            nvec, X_, Y_, W_);
   }

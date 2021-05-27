@@ -1,5 +1,5 @@
-#ifndef KRONMULTV_ORG_HPP
-#define KRONMULTV_ORG_HPP 1
+#ifndef KRONMULTV_RECUR_HPP
+#define KRONMULTV_RECUR_HPP 1
 
 #include "kroncommon.hpp"
 #include "kronm.hpp"
@@ -14,7 +14,7 @@
 //  Y = kron(A2,..,A6) * W
 //  -------------------------------------------
 template<typename T, int ndim = 1>
-DEVICE_FUNCTION void kronmultv_org(
+DEVICE_FUNCTION void kronmultv_recur(
 
     int const m1, int const n1, T const A1_[], int const ld1, int const m2,
     int const n2, T const A2_[], int const ld2, int const m3, int const n3,
@@ -131,7 +131,7 @@ DEVICE_FUNCTION void kronmultv_org(
   // note now X_ is used as workspace
   // --------------------------------
   {
-    kronmultv_org<T, ndim - 1>(m2, n2, A2_, ld2, m3, n3, A3_, ld3, m4, n4, A4_,
+    kronmultv_recur<T, ndim - 1>(m2, n2, A2_, ld2, m3, n3, A3_, ld3, m4, n4, A4_,
                                ld4, m5, n5, A5_, ld5, m6, n6, A6_, ld6,
                                // m1,n1,A1_,ld1, // unused
                                1, 1, nullptr, 1, // unused
@@ -141,7 +141,7 @@ DEVICE_FUNCTION void kronmultv_org(
 
 template<>
 DEVICE_FUNCTION void
-kronmultv_org(int const m1, int const n1, double const A1_[], int const ld1,
+kronmultv_recur(int const m1, int const n1, double const A1_[], int const ld1,
               int const m2, int const n2, double const A2_[], int const ld2,
               int const m3, int const n3, double const A3_[], int const ld3,
               int const m4, int const n4, double const A4_[], int const ld4,
@@ -177,7 +177,7 @@ kronmultv_org(int const m1, int const n1, double const A1_[], int const ld1,
 
 template<>
 DEVICE_FUNCTION void
-kronmultv_org(int const m1, int const n1, float const A1_[], int const ld1,
+kronmultv_recur(int const m1, int const n1, float const A1_[], int const ld1,
               int const m2, int const n2, float const A2_[], int const ld2,
               int const m3, int const n3, float const A3_[], int const ld3,
               int const m4, int const n4, float const A4_[], int const ld4,
