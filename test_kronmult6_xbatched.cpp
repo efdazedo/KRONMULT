@@ -711,11 +711,11 @@ int main_func(double const tol)
 
 #ifdef USE_GPU
     {
-      int const idim = 6;
-      int const n = 8;
+      int const idim       = 6;
+      int const n          = 8;
       int const batchCount = 2048;
-      int const idebug = 0;
-      bool const do_check = false;
+      int const idebug     = 0;
+      bool const do_check  = false;
 
       test_kronmult_xbatched<T>(idim, n, batchCount, idebug, do_check);
     }
