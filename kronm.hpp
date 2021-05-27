@@ -73,17 +73,11 @@ kronm(int const ndim, int const m_array[], int const n_array[],
 
   double const dflops_forward  = flops_forward(ndim, m_array, n_array);
   double const dflops_backward = flops_backward(ndim, m_array, n_array);
-#ifdef USE_GPU
-  // ------------------------------------------------------
-  // prefer forward algorithm on GPU for unit stride in "j"
-  // ------------------------------------------------------
-  bool const use_forward = (dflops_forward <= dflops_backward);
-#else
+
   // ------------------------------------------------------
   // prefer backward algorithm on CPU for unit stride in "k"
   // ------------------------------------------------------
   bool const use_forward = (dflops_forward < dflops_backward);
-#endif
 
   if (idebug >= 1)
   {
