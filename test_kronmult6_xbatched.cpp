@@ -713,7 +713,7 @@ int main_func(double const tol)
     {
       int const idim       = 6;
       int const n          = 8;
-      int const batchCount = 2048;
+      int const batchCount = 1024;
       int const idebug     = 0;
       bool const do_check  = false;
 
