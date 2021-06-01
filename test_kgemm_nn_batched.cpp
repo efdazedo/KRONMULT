@@ -491,14 +491,16 @@ T test_kgemm_nn_batched(int const mm, int const nn, int const kk,
 template<typename T, typename Tc = double>
 int main_func(double const tol)
 {
-  int const idebug         = 1;
+  int const idebug         = 0;
   int const inc            = 7;
   int const kk_max         = 65;
   int const mm_max         = 65;
   int const nn_max         = 65;
   int const batchCount_max = 2 * inc + 1;
 
-  std::cout << "batchCount_max = " << batchCount_max << "\n";
+  if (idebug >= 1) {
+    std::cout << "batchCount_max = " << batchCount_max << "\n";
+  };
 
   int nerrors = 0;
   for (int batchCount = 1; batchCount <= batchCount_max; batchCount += inc)
