@@ -30,7 +30,6 @@ kgemm_tt2(int const mm, int const nn, int const kk, T const alpha_in,
 
   Tc const alpha   = alpha_in;
   Tc const beta    = beta_in;
-  int constexpr nb = 2 * 32;
 #ifdef USE_GPU
   // ---------------------------
   // use matlab 1 based indexing
@@ -49,10 +48,12 @@ kgemm_tt2(int const mm, int const nn, int const kk, T const alpha_in,
   int const ij_start = threadIdx.x + 1;
   int const ij_size  = nthreads;
 
+  int constexpr nb = 2 * warpsize;
 #else
 
   int const ij_start = 1;
   int const ij_size  = 1;
+  int constexpr nb = 2 * 32;
 #endif
 
   //  ------------------------------------
