@@ -562,12 +562,12 @@ int main_func(double const tol)
 
     {
 #ifdef USE_GPU
-      int batchCount = 256;
+      int batchCount = 32;
 #else
       int batchCount = 16;
 #endif
       int const n      = 8;
-      int const idebug = 0;
+      int const idebug = 1;
       for (int i = 1; i <= 5; i++)
       {
         int const mm = n;

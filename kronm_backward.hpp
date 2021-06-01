@@ -21,14 +21,20 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
 {
   int constexpr idebug = 0;
 
+  // ------------------------------------------
+  // perform transpose and atomic add operation
+  // ------------------------------------------
   auto transpose_add = [](int const m_dest, int const n_dest,
                           T const *const Asrc_, int const ldA, T *const Bdest_,
                           int const ldB) {
+    //   --------------
+    // equivalent to
     // for(j=1; j <= n_dest; j++) {
     // for(i=1; i <= m_dest; i++) {
     //   Bdest(i,j) += Asrc(j,i);
     //   };
     //   };
+    //   --------------
     int const ij_end = (m_dest * n_dest);
 
 #ifdef USE_GPU
@@ -45,7 +51,9 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
 
     for (int ij = ij_start; ij <= ij_end; ij += ij_inc)
     {
-      // ij = i + (j-1)*mm
+      // ---------------------
+      // ij = i + (j-1)*m_dest
+      // ---------------------
       int const i = (ij - 1) % m_dest + 1;
       int const j = (ij - i) / m_dest + 1;
 
@@ -130,7 +138,6 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
 
   }; // for i
 
-
   if (need_transpose)
   {
     // --------------------------------------
@@ -150,6 +157,6 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
     transpose_add(m_dest, n_dest, Asrc, ldAsrc, Bdest, ldBdest);
   };
 
-    SYNCTHREADS;
+  SYNCTHREADS;
 }
 #endif

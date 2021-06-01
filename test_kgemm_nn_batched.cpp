@@ -498,7 +498,8 @@ int main_func(double const tol)
   int const nn_max         = 65;
   int const batchCount_max = 2 * inc + 1;
 
-  if (idebug >= 1) {
+  if (idebug >= 1)
+  {
     std::cout << "batchCount_max = " << batchCount_max << "\n";
   };
 
@@ -547,7 +548,7 @@ int main_func(double const tol)
   //  -----------------
   if (nerrors == 0)
   {
-    const int idebug     = 0;
+    const int idebug     = 1;
     const int batchCount = 2 * 64;
     for (int n = 1; n <= 10; n++)
     {
