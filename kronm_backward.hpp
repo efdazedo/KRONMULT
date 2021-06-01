@@ -55,6 +55,9 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
     SYNCTHREADS;
   };
 
+  // --------------------------------------
+  // compute prod( n_array[i], i=0:(ndim-1)
+  // --------------------------------------
   auto prod = [](int const ndim, int const n_array[]) -> int {
     int iprod = 1;
     for (int i = 0; i < ndim; i++)
@@ -95,6 +98,10 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
     T const *const Bp = A_array[i];
     int const ldBp    = ld_array[i];
 
+    // ---------------------------------------------
+    // Note: perform atomic update to Y_ at last iteration
+    // if transpose copy is not required
+    // ---------------------------------------------
     T *Cp        = (is_final && (!need_transpose)) ? Y_ : Yout;
     T const beta = (is_final && (!need_transpose)) ? 1 : 0;
 
@@ -123,12 +130,15 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
 
   }; // for i
 
+
   if (need_transpose)
   {
+    // --------------------------------------
     // Y is Ysize by nvec
     // Yout is nvec by Ysize
     // perform
     // Y(1:Ysize,1:nvec) += transpose( Yout(1:nvec,1:Ysize) )
+    // --------------------------------------
     int const m_dest = Ysize;
     int const n_dest = nvec;
 
@@ -139,5 +149,7 @@ kronm_backward(int const ndim, int const m_array[], int const n_array[],
 
     transpose_add(m_dest, n_dest, Asrc, ldAsrc, Bdest, ldBdest);
   };
+
+    SYNCTHREADS;
 }
 #endif

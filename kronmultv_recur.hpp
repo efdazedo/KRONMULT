@@ -9,7 +9,7 @@
 
 //  -------------------------------------------
 //  device function to evaluate
-//  Y = kron(A1,...,A6)*X as
+//  Y = kron(A1,...,A6)*X conceptually recursive as
 //  W(:,k) = X(:,k) * transpose(A1), k=1:nvec
 //  Y = kron(A2,..,A6) * W
 //  -------------------------------------------

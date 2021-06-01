@@ -44,7 +44,9 @@ kronm_forward(int const ndim, int const m_array[], int const n_array[],
 
     for (int ij = ij_start; ij <= ij_end; ij += ij_inc)
     {
+      // ------------------
       // ij = i + (j-1)*mm
+      // ------------------
       int const i = (ij - 1) % m_dest + 1;
       int const j = (ij - i) / m_dest + 1;
 
@@ -54,6 +56,9 @@ kronm_forward(int const ndim, int const m_array[], int const n_array[],
     SYNCTHREADS;
   };
 
+  // --------------------------------------
+  // compute prod( n_array[i], i=0:(ndim-1)
+  // --------------------------------------
   auto prod = [](int const ndim, int const n_array[]) -> int {
     int iprod = 1;
     for (int i = 0; i < ndim; i++)
@@ -115,6 +120,9 @@ kronm_forward(int const ndim, int const m_array[], int const n_array[],
 
     assert(Ap != nullptr);
 
+    // ---------------------------------------------
+    // Note: perform atomic update to Y_ at last iteration
+    // ---------------------------------------------
     T *Cp        = (is_final) ? Y_ : Yout;
     T const beta = (is_final) ? 1 : 0;
 

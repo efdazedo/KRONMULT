@@ -10,7 +10,10 @@
 //  device function to evaluate
 //  Y = kron(A1,...,A6)*X
 //
-//  using algorithm 993
+//  using algorithm 993 in ACM Transactions on Mathematical Software
+//  "Algorithm 993: Efficient Computation with Kronecker Products"
+//  by Paul L. Fackler
+//  Volume 45, Issue 2, June 2019, pp1-9
 //  -------------------------------------------
 template<typename T>
 DEVICE_FUNCTION void
@@ -30,6 +33,9 @@ kronm(int const ndim, int const m_array[], int const n_array[],
     return (iprod);
   };
 
+  // -------------------------------------------
+  // estimate number of flops in forward variant
+  // -------------------------------------------
   auto flops_forward = [=](int ndim, int const m_array[],
                            int const n_array[]) -> double {
     int Xsize          = prod(ndim, n_array);
@@ -51,6 +57,9 @@ kronm(int const ndim, int const m_array[], int const n_array[],
     return (total_flops);
   };
 
+  // --------------------------------------------
+  // estimate number of flops in backward variant
+  // --------------------------------------------
   auto flops_backward = [=](int ndim, int const m_array[],
                             int const n_array[]) -> double {
     int Xsize          = prod(ndim, n_array);
