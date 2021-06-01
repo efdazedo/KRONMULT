@@ -48,13 +48,13 @@ kgemm_nt2(int const mm, int const nn, int const kk, T const alpha_in,
   int const ij_start = threadIdx.x + 1;
   int const ij_size  = nthreads;
 
-  int const nb   = 2 * warpsize;
+  int const nb = 2 * warpsize;
 #else
 
   int const ij_start = 1;
   int const ij_size  = 1;
 
-  int const nb   = 2 * 32;
+  int const nb = 2 * 32;
 #endif
 
   //  ------------------------------------

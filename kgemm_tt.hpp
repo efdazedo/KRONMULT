@@ -28,8 +28,8 @@ kgemm_tt2(int const mm, int const nn, int const kk, T const alpha_in,
 
 #endif
 
-  Tc const alpha   = alpha_in;
-  Tc const beta    = beta_in;
+  Tc const alpha = alpha_in;
+  Tc const beta  = beta_in;
 #ifdef USE_GPU
   // ---------------------------
   // use matlab 1 based indexing
@@ -53,7 +53,7 @@ kgemm_tt2(int const mm, int const nn, int const kk, T const alpha_in,
 
   int const ij_start = 1;
   int const ij_size  = 1;
-  int constexpr nb = 2 * 32;
+  int constexpr nb   = 2 * 32;
 #endif
 
   //  ------------------------------------

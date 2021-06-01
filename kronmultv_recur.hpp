@@ -60,13 +60,19 @@ DEVICE_FUNCTION void kronmultv_recur(
     assert((1 <= m6) && (1 <= n6) && (m6 <= ld6));
   };
 
-  int const n26 = (ndim == 1)   ? 1
-                  : (ndim == 2) ? n2
-                  : (ndim == 3) ? (n2 * n3)
-                  : (ndim == 4) ? ((n2 * n3) * n4)
-                  : (ndim == 5) ? ((n2 * n3) * n4) * n5
-                  : (ndim == 6) ? (((n2 * n3) * n4) * n5) * n6
-                                : 0;
+  int const n26 =
+      (ndim == 1)
+          ? 1
+          : (ndim == 2)
+                ? n2
+                : (ndim == 3)
+                      ? (n2 * n3)
+                      : (ndim == 4)
+                            ? ((n2 * n3) * n4)
+                            : (ndim == 5)
+                                  ? ((n2 * n3) * n4) * n5
+                                  : (ndim == 6) ? (((n2 * n3) * n4) * n5) * n6
+                                                : 0;
 
   assert(1 <= n26);
 
