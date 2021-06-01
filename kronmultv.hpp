@@ -20,18 +20,12 @@ DEVICE_FUNCTION void kronmultv(
     T X_[], T Y_[], T W_[])
 {
 #ifdef USE_ALG993
-  bool constexpr use_kronmultv_recur = false;
+  bool constexpr use_alg993 = true;
 #else
-  bool constexpr use_kronmultv_recur = true;
+  bool constexpr use_alg993 = false;
 #endif
 
-  if (use_kronmultv_recur)
-  {
-    kronmultv_recur<T, ndim>(m1, n1, A1_, ld1, m2, n2, A2_, ld2, m3, n3, A3_,
-                             ld3, m4, n4, A4_, ld4, m5, n5, A5_, ld5, m6, n6,
-                             A6_, ld6, nvec, X_, Y_, W_);
-  }
-  else
+  if (use_alg993)
   {
     // -----------------------
     // use kronm algorithm 993
@@ -42,6 +36,12 @@ DEVICE_FUNCTION void kronmultv(
     T const *const A_array[] = {A1_, A2_, A3_, A4_, A5_, A6_};
 
     kronm<T>(ndim, m_array, n_array, A_array, ld_array, nvec, X_, Y_, W_);
+  }
+  else
+  {
+    kronmultv_recur<T, ndim>(m1, n1, A1_, ld1, m2, n2, A2_, ld2, m3, n3, A3_,
+                             ld3, m4, n4, A4_, ld4, m5, n5, A5_, ld5, m6, n6,
+                             A6_, ld6, nvec, X_, Y_, W_);
   };
 }
 #endif
